@@ -218,6 +218,7 @@ module PaperTrail
     def data_for_create
       data = {
         event: @record.paper_trail_event || "create",
+        object: recordable_object,
         whodunnit: PaperTrail.whodunnit
       }
       if @record.respond_to?(:updated_at)
@@ -287,7 +288,7 @@ module PaperTrail
     def data_for_update
       data = {
         event: @record.paper_trail_event || "update",
-        object: recordable_object,
+        # object: recordable_object,
         whodunnit: PaperTrail.whodunnit
       }
       if @record.respond_to?(:updated_at)
