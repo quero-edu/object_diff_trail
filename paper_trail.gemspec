@@ -1,9 +1,9 @@
 $LOAD_PATH.unshift File.expand_path("../lib", __FILE__)
-require "paper_trail/version_number"
+require "object_diff_trail/version_number"
 
 Gem::Specification.new do |s|
-  s.name = "paper_trail"
-  s.version = PaperTrail::VERSION::STRING
+  s.name = "object_diff_trail"
+  s.version = ObjectDiffTrail::VERSION::STRING
   s.platform = Gem::Platform::RUBY
   s.summary = "Track changes to your models."
   s.description = <<-EOS
@@ -11,13 +11,13 @@ Track changes to your models, for auditing or versioning. See how a model looked
 at any stage in its lifecycle, revert it to any version, or restore it after it
 has been destroyed.
   EOS
-  s.homepage = "https://github.com/airblade/paper_trail"
+  s.homepage = "https://github.com/airblade/object_diff_trail"
   s.authors = ["Andy Stewart", "Ben Atkins", "Jared Beck"]
   s.email = "batkinz@gmail.com"
   s.license = "MIT"
 
   s.files = `git ls-files -z`.split("\x0").select { |f|
-    f.match(%r{^(Gemfile|MIT-LICENSE|lib|paper_trail.gemspec)/})
+    f.match(%r{^(Gemfile|MIT-LICENSE|lib|object_diff_trail.gemspec)/})
   }
   s.executables = []
   s.require_paths = ["lib"]

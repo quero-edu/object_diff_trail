@@ -1,11 +1,11 @@
 require "active_support/concern"
-require "paper_trail/attribute_serializers/object_changes_attribute"
-require "paper_trail/queries/versions/where_object"
-require "paper_trail/queries/versions/where_object_changes"
+require "object_diff_trail/attribute_serializers/object_changes_attribute"
+require "object_diff_trail/queries/versions/where_object"
+require "object_diff_trail/queries/versions/where_object_changes"
 
-module PaperTrail
-  # Originally, PaperTrail did not provide this module, and all of this
-  # functionality was in `PaperTrail::Version`. That model still exists (and is
+module ObjectDiffTrail
+  # Originally, ObjectDiffTrail did not provide this module, and all of this
+  # functionality was in `ObjectDiffTrail::Version`. That model still exists (and is
   # used by most apps) but by moving the functionality to this module, people
   # can include this concern instead of sub-classing the `Version` model.
   module VersionConcern
@@ -22,7 +22,7 @@ module PaperTrail
       # the association when the test suite is running. This makes it pass when
       # DB is not initialized prior to test runs such as when we run on Travis
       # CI (there won't be a db in `spec/dummy_app/db/`).
-      if PaperTrail.config.track_associations?
+      if ObjectDiffTrail.config.track_associations?
         has_many :version_associations, dependent: :destroy
       end
 
@@ -181,7 +181,7 @@ module PaperTrail
       if self.class.object_col_is_json?
         object
       else
-        PaperTrail.serializer.load(object)
+        ObjectDiffTrail.serializer.load(object)
       end
     end
 
@@ -189,7 +189,7 @@ module PaperTrail
     #
     # Optionally this can also restore all :has_one and :has_many (including
     # has_many :through) associations as they were "at the time", if they are
-    # also being versioned by PaperTrail.
+    # also being versioned by ObjectDiffTrail.
     #
     # Options:
     #
@@ -214,7 +214,7 @@ module PaperTrail
     #
     def reify(options = {})
       return nil if object.nil?
-      ::PaperTrail::Reifier.reify(self, options)
+      ::ObjectDiffTrail::Reifier.reify(self, options)
     end
 
     # Returns what changed in this version of the item.
@@ -226,13 +226,13 @@ module PaperTrail
     end
 
     # Returns who put the item into the state stored in this version.
-    def paper_trail_originator
-      @paper_trail_originator ||= previous.try(:whodunnit)
+    def object_diff_trail_originator
+      @object_diff_trail_originator ||= previous.try(:whodunnit)
     end
 
     def originator
-      ::ActiveSupport::Deprecation.warn "Use paper_trail_originator instead of originator."
-      paper_trail_originator
+      ::ActiveSupport::Deprecation.warn "Use object_diff_trail_originator instead of originator."
+      object_diff_trail_originator
     end
 
     # Returns who changed the item from the state it had in this version. This
@@ -303,7 +303,7 @@ module PaperTrail
         object_changes
       else
         begin
-          PaperTrail.serializer.load(object_changes)
+          ObjectDiffTrail.serializer.load(object_changes)
         rescue StandardError # TODO: Rescue something more specific
           {}
         end
@@ -313,7 +313,7 @@ module PaperTrail
     # Enforces the `version_limit`, if set. Default: no limit.
     # @api private
     def enforce_version_limit!
-      limit = PaperTrail.config.version_limit
+      limit = ObjectDiffTrail.config.version_limit
       return unless limit.is_a? Numeric
       previous_versions = sibling_versions.not_creates.
         order(self.class.timestamp_sort_order("asc"))

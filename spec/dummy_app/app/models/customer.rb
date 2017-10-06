@@ -1,4 +1,4 @@
 class Customer < ActiveRecord::Base
   has_many :orders, dependent: :destroy
-  has_paper_trail
+  has_object_diff_trail
 end

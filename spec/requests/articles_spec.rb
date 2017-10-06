@@ -4,17 +4,17 @@ RSpec.describe "Articles management", type: :request, order: :defined do
   let(:valid_params) { { article: { title: "Doh", content: FFaker::Lorem.sentence } } }
 
   context "versioning disabled" do
-    specify { expect(PaperTrail).not_to be_enabled }
+    specify { expect(ObjectDiffTrail).not_to be_enabled }
 
     it "does not create a version" do
-      expect(PaperTrail).to be_enabled_for_controller
+      expect(ObjectDiffTrail).to be_enabled_for_controller
       expect {
         post articles_path, params_wrapper(valid_params)
-      }.not_to change(PaperTrail::Version, :count)
+      }.not_to change(ObjectDiffTrail::Version, :count)
     end
 
-    it "does not leak the state of the `PaperTrail.enabled_for_controller?` into the next test" do
-      expect(PaperTrail).to be_enabled_for_controller
+    it "does not leak the state of the `ObjectDiffTrail.enabled_for_controller?` into the next test" do
+      expect(ObjectDiffTrail).to be_enabled_for_controller
     end
   end
 
@@ -25,7 +25,7 @@ RSpec.describe "Articles management", type: :request, order: :defined do
       it "sets that value as the `whodunnit`" do
         expect {
           post articles_path, params_wrapper(valid_params)
-        }.to change(PaperTrail::Version, :count).by(1)
+        }.to change(ObjectDiffTrail::Version, :count).by(1)
         expect(article.title).to eq("Doh")
         expect(article.versions.last.whodunnit).to eq("foobar")
       end

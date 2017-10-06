@@ -5,7 +5,7 @@ require "active_record/railtie"
 require "action_controller/railtie"
 
 Bundler.require(:default, Rails.env)
-require "paper_trail"
+require "object_diff_trail"
 
 module Dummy
   class Application < Rails::Application

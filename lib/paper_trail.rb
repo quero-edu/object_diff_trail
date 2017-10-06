@@ -1,19 +1,19 @@
 require "request_store"
-require "paper_trail/cleaner"
-require "paper_trail/config"
-require "paper_trail/has_paper_trail"
-require "paper_trail/record_history"
-require "paper_trail/reifier"
-require "paper_trail/version_association_concern"
-require "paper_trail/version_concern"
-require "paper_trail/version_number"
-require "paper_trail/serializers/json"
-require "paper_trail/serializers/yaml"
+require "object_diff_trail/cleaner"
+require "object_diff_trail/config"
+require "object_diff_trail/has_object_diff_trail"
+require "object_diff_trail/record_history"
+require "object_diff_trail/reifier"
+require "object_diff_trail/version_association_concern"
+require "object_diff_trail/version_concern"
+require "object_diff_trail/version_number"
+require "object_diff_trail/serializers/json"
+require "object_diff_trail/serializers/yaml"
 
 # An ActiveRecord extension that tracks changes to your models, for auditing or
 # versioning.
-module PaperTrail
-  extend PaperTrail::Cleaner
+module ObjectDiffTrail
+  extend ObjectDiffTrail::Cleaner
 
   class << self
     # @api private
@@ -21,49 +21,49 @@ module PaperTrail
       self.transaction_id = nil
     end
 
-    # Switches PaperTrail on or off.
+    # Switches ObjectDiffTrail on or off.
     # @api public
     def enabled=(value)
-      PaperTrail.config.enabled = value
+      ObjectDiffTrail.config.enabled = value
     end
 
-    # Returns `true` if PaperTrail is on, `false` otherwise.
-    # PaperTrail is enabled by default.
+    # Returns `true` if ObjectDiffTrail is on, `false` otherwise.
+    # ObjectDiffTrail is enabled by default.
     # @api public
     def enabled?
-      !!PaperTrail.config.enabled
+      !!ObjectDiffTrail.config.enabled
     end
 
-    # Sets whether PaperTrail is enabled or disabled for the current request.
+    # Sets whether ObjectDiffTrail is enabled or disabled for the current request.
     # @api public
     def enabled_for_controller=(value)
-      paper_trail_store[:request_enabled_for_controller] = value
+      object_diff_trail_store[:request_enabled_for_controller] = value
     end
 
-    # Returns `true` if PaperTrail is enabled for the request, `false` otherwise.
+    # Returns `true` if ObjectDiffTrail is enabled for the request, `false` otherwise.
     #
-    # See `PaperTrail::Rails::Controller#paper_trail_enabled_for_controller`.
+    # See `ObjectDiffTrail::Rails::Controller#object_diff_trail_enabled_for_controller`.
     # @api public
     def enabled_for_controller?
-      !!paper_trail_store[:request_enabled_for_controller]
+      !!object_diff_trail_store[:request_enabled_for_controller]
     end
 
-    # Sets whether PaperTrail is enabled or disabled for this model in the
+    # Sets whether ObjectDiffTrail is enabled or disabled for this model in the
     # current request.
     # @api public
     def enabled_for_model(model, value)
-      paper_trail_store[:"enabled_for_#{model}"] = value
+      object_diff_trail_store[:"enabled_for_#{model}"] = value
     end
 
-    # Returns `true` if PaperTrail is enabled for this model in the current
+    # Returns `true` if ObjectDiffTrail is enabled for this model in the current
     # request, `false` otherwise.
     # @api public
     def enabled_for_model?(model)
-      !!paper_trail_store.fetch(:"enabled_for_#{model}", true)
+      !!object_diff_trail_store.fetch(:"enabled_for_#{model}", true)
     end
 
     # Returns a `::Gem::Version`, convenient for comparisons. This is
-    # recommended over `::PaperTrail::VERSION::STRING`.
+    # recommended over `::ObjectDiffTrail::VERSION::STRING`.
     # @api public
     def gem_version
       ::Gem::Version.new(VERSION::STRING)
@@ -73,7 +73,7 @@ module PaperTrail
     # @api public
     def timestamp_field=(_field_name)
       raise(
-        "PaperTrail.timestamp_field= has been removed, without replacement. " \
+        "ObjectDiffTrail.timestamp_field= has been removed, without replacement. " \
           "It is no longer configurable. The timestamp field in the versions table " \
           "must now be named created_at."
       )
@@ -84,18 +84,18 @@ module PaperTrail
     # In a controller it is set automatically to the `current_user`.
     # @api public
     def whodunnit=(value)
-      paper_trail_store[:whodunnit] = value
+      object_diff_trail_store[:whodunnit] = value
     end
 
     # If nothing passed, returns who is reponsible for any changes that occur.
     #
-    #   PaperTrail.whodunnit = "someone"
-    #   PaperTrail.whodunnit # => "someone"
+    #   ObjectDiffTrail.whodunnit = "someone"
+    #   ObjectDiffTrail.whodunnit # => "someone"
     #
     # If value and block passed, set this value as whodunnit for the duration of the block
     #
-    #   PaperTrail.whodunnit("me") do
-    #     puts PaperTrail.whodunnit # => "me"
+    #   ObjectDiffTrail.whodunnit("me") do
+    #     puts ObjectDiffTrail.whodunnit # => "me"
     #   end
     #
     # @api public
@@ -103,46 +103,46 @@ module PaperTrail
       if value
         raise ArgumentError, "no block given" unless block_given?
 
-        previous_whodunnit = paper_trail_store[:whodunnit]
-        paper_trail_store[:whodunnit] = value
+        previous_whodunnit = object_diff_trail_store[:whodunnit]
+        object_diff_trail_store[:whodunnit] = value
 
         begin
           yield
         ensure
-          paper_trail_store[:whodunnit] = previous_whodunnit
+          object_diff_trail_store[:whodunnit] = previous_whodunnit
         end
-      elsif paper_trail_store[:whodunnit].respond_to?(:call)
-        paper_trail_store[:whodunnit].call
+      elsif object_diff_trail_store[:whodunnit].respond_to?(:call)
+        object_diff_trail_store[:whodunnit].call
       else
-        paper_trail_store[:whodunnit]
+        object_diff_trail_store[:whodunnit]
       end
     end
 
-    # Sets any information from the controller that you want PaperTrail to
+    # Sets any information from the controller that you want ObjectDiffTrail to
     # store.  By default this is set automatically by a before filter.
     # @api public
     def controller_info=(value)
-      paper_trail_store[:controller_info] = value
+      object_diff_trail_store[:controller_info] = value
     end
 
     # Returns any information from the controller that you want
-    # PaperTrail to store.
+    # ObjectDiffTrail to store.
     #
-    # See `PaperTrail::Rails::Controller#info_for_paper_trail`.
+    # See `ObjectDiffTrail::Rails::Controller#info_for_object_diff_trail`.
     # @api public
     def controller_info
-      paper_trail_store[:controller_info]
+      object_diff_trail_store[:controller_info]
     end
 
-    # Getter and Setter for PaperTrail Serializer
+    # Getter and Setter for ObjectDiffTrail Serializer
     # @api public
     def serializer=(value)
-      PaperTrail.config.serializer = value
+      ObjectDiffTrail.config.serializer = value
     end
 
     # @api public
     def serializer
-      PaperTrail.config.serializer
+      ObjectDiffTrail.config.serializer
     end
 
     # @api public
@@ -152,25 +152,25 @@ module PaperTrail
 
     # @api public
     def transaction_id
-      paper_trail_store[:transaction_id]
+      object_diff_trail_store[:transaction_id]
     end
 
     # @api public
     def transaction_id=(id)
-      paper_trail_store[:transaction_id] = id
+      object_diff_trail_store[:transaction_id] = id
     end
 
-    # Thread-safe hash to hold PaperTrail's data. Initializing with needed
+    # Thread-safe hash to hold ObjectDiffTrail's data. Initializing with needed
     # default values.
     # @api private
-    def paper_trail_store
-      RequestStore.store[:paper_trail] ||= { request_enabled_for_controller: true }
+    def object_diff_trail_store
+      RequestStore.store[:object_diff_trail] ||= { request_enabled_for_controller: true }
     end
 
-    # Returns PaperTrail's configuration object.
+    # Returns ObjectDiffTrail's configuration object.
     # @api private
     def config
-      @config ||= PaperTrail::Config.instance
+      @config ||= ObjectDiffTrail::Config.instance
       yield @config if block_given?
       @config
     end
@@ -183,12 +183,12 @@ module PaperTrail
 end
 
 ActiveSupport.on_load(:active_record) do
-  include PaperTrail::Model
+  include ObjectDiffTrail::Model
 end
 
 # Require frameworks
 if defined?(::Rails) && ActiveRecord::VERSION::STRING >= "3.2"
-  require "paper_trail/frameworks/rails"
+  require "object_diff_trail/frameworks/rails"
 else
-  require "paper_trail/frameworks/active_record"
+  require "object_diff_trail/frameworks/active_record"
 end

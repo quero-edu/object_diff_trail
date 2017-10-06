@@ -11,7 +11,7 @@ task :prepare do
 end
 
 require "rake/testtask"
-desc "Run tests on PaperTrail with Test::Unit."
+desc "Run tests on ObjectDiffTrail with Test::Unit."
 Rake::TestTask.new(:test) do |t|
   t.libs << "lib"
   t.libs << "test"
@@ -25,7 +25,7 @@ Rake::TestTask.new(:test) do |t|
 end
 
 require "rspec/core/rake_task"
-desc "Run tests on PaperTrail with RSpec"
+desc "Run tests on ObjectDiffTrail with RSpec"
 task(:spec).clear
 RSpec::Core::RakeTask.new(:spec) do |t|
   t.verbose = false # hide list of specs bit.ly/1nVq3Jn

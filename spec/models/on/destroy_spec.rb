@@ -13,10 +13,10 @@ module On
       end
     end
 
-    context "#paper_trail_event" do
+    context "#object_diff_trail_event" do
       it "rembembers the custom event name" do
         record = described_class.create(name: "Alice")
-        record.paper_trail_event = "banana"
+        record.object_diff_trail_event = "banana"
         record.update_attributes(name: "blah")
         record.destroy
         expect(record.versions.length).to(eq(1))

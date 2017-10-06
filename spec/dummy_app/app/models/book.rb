@@ -5,5 +5,5 @@ class Book < ActiveRecord::Base
   has_many :editorships, dependent: :destroy
   has_many :editors, through: :editorships
 
-  has_paper_trail
+  has_object_diff_trail
 end

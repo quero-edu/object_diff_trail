@@ -1,3 +1,3 @@
 class Elephant < Animal
-  paper_trail.disable
+  object_diff_trail.disable
 end

@@ -1,13 +1,13 @@
 require "spec_helper"
 
-module PaperTrail
+module ObjectDiffTrail
   ::RSpec.describe Cleaner, versioning: true do
     after do
-      PaperTrail.config.version_limit = nil
+      ObjectDiffTrail.config.version_limit = nil
     end
 
     it "cleans up old versions" do
-      PaperTrail.config.version_limit = 10
+      ObjectDiffTrail.config.version_limit = 10
       widget = Widget.create
 
       100.times do |i|
@@ -27,7 +27,7 @@ module PaperTrail
       # just create them out-of-order:
       (1..5).to_a.shuffle.each do |n|
         Timecop.freeze(epoch + n.hours) do
-          PaperTrail::Version.create!(
+          ObjectDiffTrail::Version.create!(
             item: widget,
             event: "update",
             object: { "id" => widget.id, "name" => "Name #{n}" }.to_yaml
@@ -39,7 +39,7 @@ module PaperTrail
       # Now, we've recreated the scenario where we can accidentally clean up
       # the wrong versions. Re-enable the version_limit, and trigger the
       # clean-up:
-      PaperTrail.config.version_limit = 3
+      ObjectDiffTrail.config.version_limit = 3
       widget.versions.last.send(:enforce_version_limit!)
 
       # Verify that we have fewer versions:

@@ -54,7 +54,7 @@ end
 
 require File.expand_path("../dummy_app/config/environment", __FILE__)
 require "rspec/rails"
-require "paper_trail/frameworks/rspec"
+require "object_diff_trail/frameworks/rspec"
 require "ffaker"
 require "timecop"
 

@@ -1,15 +1,15 @@
 require "active_support/core_ext/object" # provides the `try` method
-require "paper_trail/attribute_serializers/legacy_active_record_shim"
-require "paper_trail/attribute_serializers/object_attribute"
-require "paper_trail/attribute_serializers/object_changes_attribute"
-require "paper_trail/model_config"
-require "paper_trail/record_trail"
+require "object_diff_trail/attribute_serializers/legacy_active_record_shim"
+require "object_diff_trail/attribute_serializers/object_attribute"
+require "object_diff_trail/attribute_serializers/object_changes_attribute"
+require "object_diff_trail/model_config"
+require "object_diff_trail/record_trail"
 
-module PaperTrail
+module ObjectDiffTrail
   # Extensions to `ActiveRecord::Base`.  See `frameworks/active_record.rb`.
   # It is our goal to have the smallest possible footprint here, because
   # `ActiveRecord::Base` is a very crowded namespace! That is why we introduced
-  # `.paper_trail` and `#paper_trail`.
+  # `.object_diff_trail` and `#object_diff_trail`.
   module Model
     def self.included(base)
       base.send :extend, ClassMethods
@@ -25,7 +25,7 @@ module PaperTrail
       # - :on - The events to track (optional; defaults to all of them). Set
       #   to an array of `:create`, `:update`, `:destroy` as desired.
       # - :class_name - The name of a custom Version class.  This class should
-      #   inherit from `PaperTrail::Version`.
+      #   inherit from `ObjectDiffTrail::Version`.
       # - :ignore - An array of attributes for which a new `Version` will not be
       #   created if only they change. It can also aceept a Hash as an
       #   argument where the key is the attribute to ignore (a `String` or
@@ -45,7 +45,7 @@ module PaperTrail
       # - :meta - A hash of extra data to store. You must add a column to the
       #   `versions` table for each key. Values are objects or procs (which
       #   are called with `self`, i.e. the model with the paper trail).  See
-      #   `PaperTrail::Controller.info_for_paper_trail` for how to store data
+      #   `ObjectDiffTrail::Controller.info_for_object_diff_trail` for how to store data
       #   from the controller.
       # - :versions - The name to use for the versions association.  Default
       #   is `:versions`.
@@ -54,29 +54,29 @@ module PaperTrail
       # - :save_changes - Whether or not to save changes to the object_changes
       #   column if it exists. Default is true
       # - :join_tables - If the model has a has_and_belongs_to_many relation
-      #   with an unpapertrailed model, passing the name of the association to
+      #   with an unObjectDiffTrailed model, passing the name of the association to
       #   the join_tables option will paper trail the join table but not save
       #   the other model, allowing reification of the association but with the
       #   other models latest state (if the other model is paper trailed, this
       #   option does nothing)
       #
       # @api public
-      def has_paper_trail(options = {})
-        paper_trail.setup(options)
+      def has_object_diff_trail(options = {})
+        object_diff_trail.setup(options)
       end
 
       # @api public
-      def paper_trail
-        ::PaperTrail::ModelConfig.new(self)
+      def object_diff_trail
+        ::ObjectDiffTrail::ModelConfig.new(self)
       end
     end
 
     # Wrap the following methods in a module so we can include them only in the
-    # ActiveRecord models that declare `has_paper_trail`.
+    # ActiveRecord models that declare `has_object_diff_trail`.
     module InstanceMethods
       # @api public
-      def paper_trail
-        ::PaperTrail::RecordTrail.new(self)
+      def object_diff_trail
+        ::ObjectDiffTrail::RecordTrail.new(self)
       end
     end
   end

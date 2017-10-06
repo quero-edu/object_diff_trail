@@ -4,14 +4,14 @@ RSpec.describe Translation, type: :model, versioning: true do
   context "for non-US translations" do
     it "not change the number of versions" do
       described_class.create!(headline: "Headline")
-      expect(PaperTrail::Version.count).to(eq(0))
+      expect(ObjectDiffTrail::Version.count).to(eq(0))
     end
 
     context "after update" do
       it "not change the number of versions" do
         translation = described_class.create!(headline: "Headline")
         translation.update_attributes(content: "Content")
-        expect(PaperTrail::Version.count).to(eq(0))
+        expect(ObjectDiffTrail::Version.count).to(eq(0))
       end
     end
 
@@ -19,7 +19,7 @@ RSpec.describe Translation, type: :model, versioning: true do
       it "not change the number of versions" do
         translation = described_class.create!(headline: "Headline")
         translation.destroy
-        expect(PaperTrail::Version.count).to(eq(0))
+        expect(ObjectDiffTrail::Version.count).to(eq(0))
       end
     end
   end
@@ -31,7 +31,7 @@ RSpec.describe Translation, type: :model, versioning: true do
         translation.language_code = "US"
         translation.type = "DRAFT"
         translation.save!
-        expect(PaperTrail::Version.count).to(eq(0))
+        expect(ObjectDiffTrail::Version.count).to(eq(0))
       end
 
       it "update does not change the number of versions" do
@@ -40,20 +40,20 @@ RSpec.describe Translation, type: :model, versioning: true do
         translation.type = "DRAFT"
         translation.save!
         translation.update_attributes(content: "Content")
-        expect(PaperTrail::Version.count).to(eq(0))
+        expect(ObjectDiffTrail::Version.count).to(eq(0))
       end
     end
 
     context "that are not drafts" do
       it "create changes the number of versions" do
         described_class.create!(headline: "Headline", language_code: "US")
-        expect(PaperTrail::Version.count).to(eq(1))
+        expect(ObjectDiffTrail::Version.count).to(eq(1))
       end
 
       it "update does not change the number of versions" do
         translation = described_class.create!(headline: "Headline", language_code: "US")
         translation.update_attributes(content: "Content")
-        expect(PaperTrail::Version.count).to(eq(2))
+        expect(ObjectDiffTrail::Version.count).to(eq(2))
         expect(translation.versions.size).to(eq(2))
       end
 
@@ -62,7 +62,7 @@ RSpec.describe Translation, type: :model, versioning: true do
         translation.language_code = "US"
         translation.save!
         translation.destroy
-        expect(PaperTrail::Version.count).to(eq(2))
+        expect(ObjectDiffTrail::Version.count).to(eq(2))
         expect(translation.versions.size).to(eq(2))
       end
     end

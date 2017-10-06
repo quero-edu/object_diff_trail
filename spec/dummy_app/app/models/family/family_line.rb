@@ -1,6 +1,6 @@
 module Family
   class FamilyLine < ActiveRecord::Base
-    has_paper_trail
+    has_object_diff_trail
 
     if ActiveRecord.gem_version >= Gem::Version.new("5.0")
       belongs_to :parent, class_name: "::Family::Family", foreign_key: :parent_id, optional: true

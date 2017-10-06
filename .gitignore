@@ -1,7 +1,7 @@
 gemfiles/*.lock
 NOTES
 test/debug.log
-test/paper_trail_plugin.sqlite3.db
+test/object_diff_trail_plugin.sqlite3.db
 spec/dummy_app/config/database.yml
 spec/dummy_app/db/*.sqlite3
 spec/dummy_app/log/*

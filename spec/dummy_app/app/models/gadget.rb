@@ -1,3 +1,3 @@
 class Gadget < ActiveRecord::Base
-  has_paper_trail ignore: :brand
+  has_object_diff_trail ignore: :brand
 end

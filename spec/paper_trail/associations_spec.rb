@@ -1,6 +1,6 @@
 require "spec_helper"
 
-RSpec.describe(::PaperTrail, versioning: true) do
+RSpec.describe(::ObjectDiffTrail, versioning: true) do
   CHAPTER_NAMES = [
     "Down the Rabbit-Hole",
     "The Pool of Tears",
@@ -513,7 +513,7 @@ RSpec.describe(::PaperTrail, versioning: true) do
         end
       end
 
-      context "updated before the associated without paper_trail was created" do
+      context "updated before the associated without object_diff_trail was created" do
         before do
           @book.update_attributes!(title: "book_1")
           @book.editors.create!(name: "editor_0")

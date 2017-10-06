@@ -5,7 +5,7 @@ require "spec_helper"
 if JsonVersion.table_exists?
   RSpec.describe JsonVersion, type: :model do
     it "includes the VersionConcern module" do
-      expect(described_class).to include(PaperTrail::VersionConcern)
+      expect(described_class).to include(ObjectDiffTrail::VersionConcern)
     end
 
     describe "Methods" do

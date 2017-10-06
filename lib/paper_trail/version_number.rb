@@ -1,9 +1,9 @@
-module PaperTrail
-  # The version number of the paper_trail gem. Not to be confused with
-  # `PaperTrail::Version`. Ruby constants are case-sensitive, apparently,
+module ObjectDiffTrail
+  # The version number of the object_diff_trail gem. Not to be confused with
+  # `ObjectDiffTrail::Version`. Ruby constants are case-sensitive, apparently,
   # and they are two different modules! It would be nice to remove `VERSION`,
   # because of this confusion, but it's not worth the breaking change.
-  # People are encouraged to use `PaperTrail.gem_version` instead.
+  # People are encouraged to use `ObjectDiffTrail.gem_version` instead.
   module VERSION
     MAJOR = 8
     MINOR = 0

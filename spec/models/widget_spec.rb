@@ -77,11 +77,11 @@ RSpec.describe Widget, type: :model do
 
       subject { widget.versions.last.reify }
 
-      it { expect(subject.paper_trail).not_to be_live }
+      it { expect(subject.object_diff_trail).not_to be_live }
 
       it "clears the `versions_association_name` virtual attribute" do
         subject.save!
-        expect(subject.paper_trail).to be_live
+        expect(subject.object_diff_trail).to be_live
       end
 
       it "corresponding version uses the widget updated_at" do
@@ -134,7 +134,7 @@ RSpec.describe Widget, type: :model do
     describe "sort order" do
       it "sorts by the timestamp order from the `VersionConcern`" do
         expect(widget.versions.to_sql).to eq(
-          widget.versions.reorder(PaperTrail::Version.timestamp_sort_order).to_sql
+          widget.versions.reorder(ObjectDiffTrail::Version.timestamp_sort_order).to_sql
         )
       end
     end
@@ -164,7 +164,7 @@ RSpec.describe Widget, type: :model do
       widget = Widget.create
       assert_equal 1, widget.versions.length
       widget.destroy
-      versions_for_widget = PaperTrail::Version.with_item_keys("Widget", widget.id)
+      versions_for_widget = ObjectDiffTrail::Version.with_item_keys("Widget", widget.id)
       assert_equal 2, versions_for_widget.length
     end
 
@@ -172,7 +172,7 @@ RSpec.describe Widget, type: :model do
       versions = lambda { |widget|
         # Workaround for AR 3. When we drop AR 3 support, we can simply use
         # the `widget.versions` association, instead of `with_item_keys`.
-        PaperTrail::Version.with_item_keys("Widget", widget.id)
+        ObjectDiffTrail::Version.with_item_keys("Widget", widget.id)
       }
       widget = Widget.create
       assert_equal 1, widget.versions.length
@@ -187,39 +187,39 @@ RSpec.describe Widget, type: :model do
     end
   end
 
-  describe "#paper_trail.originator", versioning: true do
+  describe "#object_diff_trail.originator", versioning: true do
     describe "return value" do
       let(:orig_name) { FFaker::Name.name }
       let(:new_name) { FFaker::Name.name }
 
       before do
-        PaperTrail.whodunnit = orig_name
+        ObjectDiffTrail.whodunnit = orig_name
       end
 
       it "returns the originator for the model at a given state" do
-        expect(widget.paper_trail).to be_live
-        expect(widget.paper_trail.originator).to eq(orig_name)
-        widget.paper_trail.whodunnit(new_name) { |w|
+        expect(widget.object_diff_trail).to be_live
+        expect(widget.object_diff_trail.originator).to eq(orig_name)
+        widget.object_diff_trail.whodunnit(new_name) { |w|
           w.update_attributes(name: "Elizabeth")
         }
-        expect(widget.paper_trail.originator).to eq(new_name)
+        expect(widget.object_diff_trail.originator).to eq(new_name)
       end
 
       it "returns the appropriate originator" do
         widget.update_attributes(name: "Andy")
-        PaperTrail.whodunnit = new_name
+        ObjectDiffTrail.whodunnit = new_name
         widget.update_attributes(name: "Elizabeth")
         reified_widget = widget.versions[1].reify
-        expect(reified_widget.paper_trail.originator).to eq(orig_name)
+        expect(reified_widget.object_diff_trail.originator).to eq(orig_name)
         expect(reified_widget).not_to be_new_record
       end
 
       it "can create a new instance with options[:dup]" do
         widget.update_attributes(name: "Andy")
-        PaperTrail.whodunnit = new_name
+        ObjectDiffTrail.whodunnit = new_name
         widget.update_attributes(name: "Elizabeth")
         reified_widget = widget.versions[1].reify(dup: true)
-        expect(reified_widget.paper_trail.originator).to eq(orig_name)
+        expect(reified_widget.object_diff_trail.originator).to eq(orig_name)
         expect(reified_widget).to be_new_record
       end
     end
@@ -230,7 +230,7 @@ RSpec.describe Widget, type: :model do
       it "returns nil" do
         widget.update_attribute(:name, "foobar")
         widget.destroy
-        expect(widget.paper_trail.version_at(Time.now)).to be_nil
+        expect(widget.object_diff_trail.version_at(Time.now)).to be_nil
       end
     end
   end
@@ -239,7 +239,7 @@ RSpec.describe Widget, type: :model do
     context "no block given" do
       it "raises an error" do
         expect {
-          widget.paper_trail.whodunnit("Ben")
+          widget.object_diff_trail.whodunnit("Ben")
         }.to raise_error(ArgumentError, "expected to receive a block")
       end
     end
@@ -249,14 +249,14 @@ RSpec.describe Widget, type: :model do
       let(:new_name) { FFaker::Name.name }
 
       before do
-        PaperTrail.whodunnit = orig_name
+        ObjectDiffTrail.whodunnit = orig_name
         widget # persist `widget` (call the `let`)
       end
 
-      it "modifies value of `PaperTrail.whodunnit` while executing the block" do
+      it "modifies value of `ObjectDiffTrail.whodunnit` while executing the block" do
         expect(widget.versions.last.whodunnit).to eq(orig_name)
-        widget.paper_trail.whodunnit(new_name) do
-          expect(PaperTrail.whodunnit).to eq(new_name)
+        widget.object_diff_trail.whodunnit(new_name) do
+          expect(ObjectDiffTrail.whodunnit).to eq(new_name)
           widget.update_attributes(name: "Elizabeth")
         end
         expect(widget.versions.last.whodunnit).to eq(new_name)
@@ -264,18 +264,18 @@ RSpec.describe Widget, type: :model do
 
       it "reverts value of whodunnit to previous value after executing the block" do
         expect(widget.versions.last.whodunnit).to eq(orig_name)
-        widget.paper_trail.whodunnit(new_name) { |w|
+        widget.object_diff_trail.whodunnit(new_name) { |w|
           w.update_attributes(name: "Elizabeth")
         }
-        expect(PaperTrail.whodunnit).to eq(orig_name)
+        expect(ObjectDiffTrail.whodunnit).to eq(orig_name)
       end
 
       it "reverts to previous value, even if error within block" do
         expect(widget.versions.last.whodunnit).to eq(orig_name)
         expect {
-          widget.paper_trail.whodunnit(new_name) { raise }
+          widget.object_diff_trail.whodunnit(new_name) { raise }
         }.to raise_error(RuntimeError)
-        expect(PaperTrail.whodunnit).to eq(orig_name)
+        expect(ObjectDiffTrail.whodunnit).to eq(orig_name)
       end
     end
   end
@@ -285,7 +285,7 @@ RSpec.describe Widget, type: :model do
       count = widget.versions.size
       # Travel 1 second because MySQL lacks sub-second resolution
       Timecop.travel(1) do
-        widget.paper_trail.touch_with_version
+        widget.object_diff_trail.touch_with_version
       end
       expect(widget.versions.size).to eq(count + 1)
     end
@@ -294,7 +294,7 @@ RSpec.describe Widget, type: :model do
       time_was = widget.updated_at
       # Travel 1 second because MySQL lacks sub-second resolution
       Timecop.travel(1) do
-        widget.paper_trail.touch_with_version
+        widget.object_diff_trail.touch_with_version
       end
       expect(widget.updated_at).to be > time_was
     end
@@ -309,34 +309,34 @@ RSpec.describe Widget, type: :model do
     end
   end
 
-  describe ".paper_trail.enabled?" do
+  describe ".object_diff_trail.enabled?" do
     it "returns true" do
-      expect(Widget.paper_trail.enabled?).to eq(true)
+      expect(Widget.object_diff_trail.enabled?).to eq(true)
     end
   end
 
   describe ".disable" do
-    it "sets the `paper_trail.enabled?` to `false`" do
-      expect(Widget.paper_trail.enabled?).to eq(true)
-      Widget.paper_trail.disable
-      expect(Widget.paper_trail.enabled?).to eq(false)
+    it "sets the `object_diff_trail.enabled?` to `false`" do
+      expect(Widget.object_diff_trail.enabled?).to eq(true)
+      Widget.object_diff_trail.disable
+      expect(Widget.object_diff_trail.enabled?).to eq(false)
     end
 
     after do
-      Widget.paper_trail.enable
+      Widget.object_diff_trail.enable
     end
   end
 
   describe ".enable" do
-    it "sets the `paper_trail.enabled?` to `true`" do
-      Widget.paper_trail.disable
-      expect(Widget.paper_trail.enabled?).to eq(false)
-      Widget.paper_trail.enable
-      expect(Widget.paper_trail.enabled?).to eq(true)
+    it "sets the `object_diff_trail.enabled?` to `true`" do
+      Widget.object_diff_trail.disable
+      expect(Widget.object_diff_trail.enabled?).to eq(false)
+      Widget.object_diff_trail.enable
+      expect(Widget.object_diff_trail.enabled?).to eq(true)
     end
 
     after do
-      Widget.paper_trail.enable
+      Widget.object_diff_trail.enable
     end
   end
 end

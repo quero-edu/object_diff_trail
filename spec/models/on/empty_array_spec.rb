@@ -13,7 +13,7 @@ module On
     describe "#touch_with_version" do
       it "creates a version record" do
         record = described_class.create(name: "Alice")
-        record.paper_trail.touch_with_version
+        record.object_diff_trail.touch_with_version
         expect(record.versions.length).to(eq(1))
         expect(record.versions.first.event).to(eq("update"))
       end

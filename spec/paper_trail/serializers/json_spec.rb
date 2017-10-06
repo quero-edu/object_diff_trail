@@ -1,6 +1,6 @@
 require "spec_helper"
 
-module PaperTrail
+module ObjectDiffTrail
   module Serializers
     ::RSpec.describe JSON do
       let(:word_hash) {
@@ -26,7 +26,7 @@ module PaperTrail
         context "when value is a string" do
           it "construct correct WHERE query" do
             matches = described_class.
-              where_object_condition(PaperTrail::Version.arel_table[:object], :arg1, "Val 1")
+              where_object_condition(ObjectDiffTrail::Version.arel_table[:object], :arg1, "Val 1")
             expect(matches.instance_of?(Arel::Nodes::Matches)).to(eq(true))
             expect(matches.right.val).to eq("%\"arg1\":\"Val 1\"%")
           end
@@ -35,7 +35,7 @@ module PaperTrail
         context "when value is null" do
           it "construct correct WHERE query" do
             matches = described_class.
-              where_object_condition(PaperTrail::Version.arel_table[:object], :arg1, nil)
+              where_object_condition(ObjectDiffTrail::Version.arel_table[:object], :arg1, nil)
             expect(matches.instance_of?(Arel::Nodes::Matches)).to(eq(true))
             expect(matches.right.val).to(eq("%\"arg1\":null%"))
           end
@@ -44,7 +44,7 @@ module PaperTrail
         context "when value is a number" do
           it "construct correct WHERE query" do
             grouping = described_class.
-              where_object_condition(PaperTrail::Version.arel_table[:object], :arg1, -3.5)
+              where_object_condition(ObjectDiffTrail::Version.arel_table[:object], :arg1, -3.5)
             expect(grouping.instance_of?(Arel::Nodes::Grouping)).to(eq(true))
             matches = grouping.select { |v| v.instance_of?(Arel::Nodes::Matches) }
             expect(matches.first.right.val).to eq("%\"arg1\":-3.5,%")

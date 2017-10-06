@@ -1,13 +1,13 @@
 require "spec_helper"
 
-module PaperTrail
+module ObjectDiffTrail
   ::RSpec.describe Version, type: :model do
     describe "object_changes column", versioning: true do
       let(:widget) { Widget.create!(name: "Dashboard") }
       let(:value) { widget.versions.last.object_changes }
 
       context "serializer is YAML" do
-        specify { expect(PaperTrail.serializer).to be PaperTrail::Serializers::YAML }
+        specify { expect(ObjectDiffTrail.serializer).to be ObjectDiffTrail::Serializers::YAML }
 
         it "store out as a plain hash" do
           expect(value =~ /HashWithIndifferentAccess/).to be_nil
@@ -15,20 +15,20 @@ module PaperTrail
       end
 
       context "serializer is JSON" do
-        before(:all) { PaperTrail.serializer = PaperTrail::Serializers::JSON }
+        before(:all) { ObjectDiffTrail.serializer = ObjectDiffTrail::Serializers::JSON }
 
         it "store out as a plain hash" do
           expect(value =~ /HashWithIndifferentAccess/).to be_nil
         end
 
-        after(:all) { PaperTrail.serializer = PaperTrail::Serializers::YAML }
+        after(:all) { ObjectDiffTrail.serializer = ObjectDiffTrail::Serializers::YAML }
       end
     end
 
-    describe "#paper_trail_originator" do
+    describe "#object_diff_trail_originator" do
       context "no previous versions" do
         it "returns nil" do
-          expect(PaperTrail::Version.new.paper_trail_originator).to be_nil
+          expect(ObjectDiffTrail::Version.new.object_diff_trail_originator).to be_nil
         end
       end
 
@@ -38,7 +38,7 @@ module PaperTrail
           widget = Widget.create!(name: FFaker::Name.name)
           widget.versions.first.update_attributes!(whodunnit: name)
           widget.update_attributes!(name: FFaker::Name.first_name)
-          expect(widget.versions.last.paper_trail_originator).to eq(name)
+          expect(widget.versions.last.object_diff_trail_originator).to eq(name)
         end
       end
     end
@@ -46,49 +46,49 @@ module PaperTrail
     describe "#previous" do
       context "no previous versions" do
         it "returns nil" do
-          expect(PaperTrail::Version.new.previous).to be_nil
+          expect(ObjectDiffTrail::Version.new.previous).to be_nil
         end
       end
 
       context "has previous version", versioning: true do
-        it "returns a PaperTrail::Version" do
+        it "returns a ObjectDiffTrail::Version" do
           name = FFaker::Name.name
           widget = Widget.create!(name: FFaker::Name.name)
           widget.versions.first.update_attributes!(whodunnit: name)
           widget.update_attributes!(name: FFaker::Name.first_name)
-          expect(widget.versions.last.previous).to be_instance_of(PaperTrail::Version)
+          expect(widget.versions.last.previous).to be_instance_of(ObjectDiffTrail::Version)
         end
       end
     end
 
     describe "#originator" do
-      it "sets the invoke `paper_trail_originator`" do
+      it "sets the invoke `object_diff_trail_originator`" do
         allow(ActiveSupport::Deprecation).to receive(:warn)
-        subject = PaperTrail::Version.new
-        allow(subject).to receive(:paper_trail_originator)
+        subject = ObjectDiffTrail::Version.new
+        allow(subject).to receive(:object_diff_trail_originator)
         subject.originator
-        expect(subject).to have_received(:paper_trail_originator)
+        expect(subject).to have_received(:object_diff_trail_originator)
       end
 
       it "displays a deprecation warning" do
         allow(ActiveSupport::Deprecation).to receive(:warn)
-        PaperTrail::Version.new.originator
+        ObjectDiffTrail::Version.new.originator
         expect(ActiveSupport::Deprecation).to have_received(:warn).
-          with(/Use paper_trail_originator instead of originator/)
+          with(/Use object_diff_trail_originator instead of originator/)
       end
     end
 
     describe "#terminator" do
       it "is an alias for the `whodunnit` attribute" do
         attributes = { whodunnit: FFaker::Name.first_name }
-        subject = PaperTrail::Version.new(attributes)
+        subject = ObjectDiffTrail::Version.new(attributes)
         expect(subject.terminator).to eq(attributes[:whodunnit])
       end
     end
 
     describe "#version_author" do
       it "is an alias for the `terminator` method" do
-        subject = PaperTrail::Version.new
+        subject = ObjectDiffTrail::Version.new
         expect(subject.method(:version_author)).to eq(subject.method(:terminator))
       end
     end
@@ -122,7 +122,7 @@ module PaperTrail
                   "ALTER TABLE versions ADD COLUMN #{column} #{column_datatype_override};"
                 )
               end
-              PaperTrail::Version.reset_column_information
+              ObjectDiffTrail::Version.reset_column_information
             end
           end
 
@@ -142,7 +142,7 @@ module PaperTrail
                   )
                 end
               end
-              PaperTrail::Version.reset_column_information
+              ObjectDiffTrail::Version.reset_column_information
             end
           end
 
@@ -159,48 +159,48 @@ module PaperTrail
 
             it "requires its argument to be a Hash" do
               expect {
-                PaperTrail::Version.where_object(:foo)
+                ObjectDiffTrail::Version.where_object(:foo)
               }.to raise_error(ArgumentError)
               expect {
-                PaperTrail::Version.where_object([])
+                ObjectDiffTrail::Version.where_object([])
               }.to raise_error(ArgumentError)
             end
 
             context "`serializer == YAML`" do
               specify do
-                expect(PaperTrail.serializer).to be PaperTrail::Serializers::YAML
+                expect(ObjectDiffTrail.serializer).to be ObjectDiffTrail::Serializers::YAML
               end
 
               it "locates versions according to their `object` contents" do
                 expect(
-                  PaperTrail::Version.where_object(name: name)
+                  ObjectDiffTrail::Version.where_object(name: name)
                 ).to eq([widget.versions[1]])
                 expect(
-                  PaperTrail::Version.where_object(an_integer: 100)
+                  ObjectDiffTrail::Version.where_object(an_integer: 100)
                 ).to eq([widget.versions[2]])
               end
             end
 
             context "JSON serializer" do
               before(:all) do
-                PaperTrail.serializer = PaperTrail::Serializers::JSON
+                ObjectDiffTrail.serializer = ObjectDiffTrail::Serializers::JSON
               end
 
               specify do
-                expect(PaperTrail.serializer).to be PaperTrail::Serializers::JSON
+                expect(ObjectDiffTrail.serializer).to be ObjectDiffTrail::Serializers::JSON
               end
 
               it "locates versions according to their `object` contents" do
                 expect(
-                  PaperTrail::Version.where_object(name: name)
+                  ObjectDiffTrail::Version.where_object(name: name)
                 ).to eq([widget.versions[1]])
                 expect(
-                  PaperTrail::Version.where_object(an_integer: 100)
+                  ObjectDiffTrail::Version.where_object(an_integer: 100)
                 ).to eq([widget.versions[2]])
               end
 
               after(:all) do
-                PaperTrail.serializer = PaperTrail::Serializers::YAML
+                ObjectDiffTrail.serializer = ObjectDiffTrail::Serializers::YAML
               end
             end
           end
@@ -218,10 +218,10 @@ module PaperTrail
 
             it "requires its argument to be a Hash" do
               expect {
-                PaperTrail::Version.where_object_changes(:foo)
+                ObjectDiffTrail::Version.where_object_changes(:foo)
               }.to raise_error(ArgumentError)
               expect {
-                PaperTrail::Version.where_object_changes([])
+                ObjectDiffTrail::Version.where_object_changes([])
               }.to raise_error(ArgumentError)
             end
 
@@ -250,7 +250,7 @@ module PaperTrail
             # no longer supported.
             if column_datatype_override
               context "JSON serializer" do
-                before(:all) { PaperTrail.serializer = PaperTrail::Serializers::JSON }
+                before(:all) { ObjectDiffTrail.serializer = ObjectDiffTrail::Serializers::JSON }
 
                 it "locates versions according to their `object_changes` contents" do
                   expect(
@@ -270,7 +270,7 @@ module PaperTrail
                   ).to eq(widget.versions[1..2])
                 end
 
-                after(:all) { PaperTrail.serializer = PaperTrail::Serializers::YAML }
+                after(:all) { ObjectDiffTrail.serializer = ObjectDiffTrail::Serializers::YAML }
               end
             end
           end

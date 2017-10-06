@@ -1,6 +1,6 @@
 require "yaml"
 
-module PaperTrail
+module ObjectDiffTrail
   module Serializers
     # The default serializer for, e.g. `versions.object`.
     module YAML

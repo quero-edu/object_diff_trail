@@ -1,7 +1,7 @@
 require "active_support/concern"
 
-module PaperTrail
-  # Functionality for `PaperTrail::VersionAssociation`. Exists in a module
+module ObjectDiffTrail
+  # Functionality for `ObjectDiffTrail::VersionAssociation`. Exists in a module
   # for the same reasons outlined in version_concern.rb.
   module VersionAssociationConcern
     extend ::ActiveSupport::Concern

@@ -1,4 +1,4 @@
-# Use this template to report PaperTrail bugs.
+# Use this template to report ObjectDiffTrail bugs.
 # Please include only the minimum code necessary to reproduce your issue.
 require "bundler/inline"
 
@@ -8,7 +8,7 @@ gemfile(true) do
   source "https://rubygems.org"
   gem "activerecord", "5.1.4"
   gem "minitest", "5.10.3"
-  gem "paper_trail", "8.0.0", require: false
+  gem "object_diff_trail", "8.0.0", require: false
   gem "sqlite3"
 end
 
@@ -49,22 +49,22 @@ ActiveRecord::Schema.define do
     name: "index_version_associations_on_foreign_key"
 end
 ActiveRecord::Base.logger = Logger.new(STDOUT)
-require "paper_trail/config"
+require "object_diff_trail/config"
 
-# STEP THREE: Configure PaperTrail as you would in your initializer
-PaperTrail::Config.instance.track_associations = true
+# STEP THREE: Configure ObjectDiffTrail as you would in your initializer
+ObjectDiffTrail::Config.instance.track_associations = true
 
-require "paper_trail"
+require "object_diff_trail"
 
 # STEP FOUR: Define your AR models here.
 class User < ActiveRecord::Base
-  has_paper_trail
+  has_object_diff_trail
 end
 
 # STEP FIVE: Please write a test that demonstrates your issue.
 class BugTest < ActiveSupport::TestCase
   def test_1
-    assert_difference(-> { PaperTrail::Version.count }, +1) {
+    assert_difference(-> { ObjectDiffTrail::Version.count }, +1) {
       User.create(first_name: "Jane")
     }
   end

@@ -20,11 +20,11 @@ module Foo
   end
 
   class Version < Base
-    include PaperTrail::VersionConcern
+    include ObjectDiffTrail::VersionConcern
   end
 
   class Document < Base
-    has_paper_trail class_name: "Foo::Version"
+    has_object_diff_trail class_name: "Foo::Version"
   end
 end
 
@@ -39,11 +39,11 @@ module Bar
   end
 
   class Version < Base
-    include PaperTrail::VersionConcern
+    include ObjectDiffTrail::VersionConcern
   end
 
   class Document < Base
-    has_paper_trail class_name: "Bar::Version"
+    has_object_diff_trail class_name: "Bar::Version"
   end
 end
 

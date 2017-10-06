@@ -1,7 +1,7 @@
 require "spec_helper"
 
 module CustomYamlSerializer
-  extend PaperTrail::Serializers::YAML
+  extend ObjectDiffTrail::Serializers::YAML
 
   def self.load(string)
     parsed_value = super(string)

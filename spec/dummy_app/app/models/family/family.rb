@@ -1,6 +1,6 @@
 module Family
   class Family < ActiveRecord::Base
-    has_paper_trail
+    has_object_diff_trail
 
     has_many :familie_lines, class_name: "::Family::FamilyLine", foreign_key: :parent_id
     has_many :children, class_name: "::Family::Family", foreign_key: :parent_id

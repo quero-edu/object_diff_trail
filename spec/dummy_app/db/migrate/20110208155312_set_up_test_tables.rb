@@ -1,5 +1,5 @@
 # Parts of this migration must be kept in sync with
-# `lib/generators/paper_trail/templates/create_versions.rb`
+# `lib/generators/object_diff_trail/templates/create_versions.rb`
 #
 # Starting with AR 5.1, we must specify which version of AR we are using.
 # I tried using `const_get` but I got a `NameError`, then I learned about

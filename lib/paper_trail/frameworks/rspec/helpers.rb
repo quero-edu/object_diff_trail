@@ -1,15 +1,15 @@
-module PaperTrail
+module ObjectDiffTrail
   module RSpec
     module Helpers
       # Included in the RSpec configuration in `frameworks/rspec.rb`
       module InstanceMethods
         # enable versioning for specific blocks (at instance-level)
         def with_versioning
-          was_enabled = ::PaperTrail.enabled?
-          ::PaperTrail.enabled = true
+          was_enabled = ::ObjectDiffTrail.enabled?
+          ::ObjectDiffTrail.enabled = true
           yield
         ensure
-          ::PaperTrail.enabled = was_enabled
+          ::ObjectDiffTrail.enabled = was_enabled
         end
       end
 

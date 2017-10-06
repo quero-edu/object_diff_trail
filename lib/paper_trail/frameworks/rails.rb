@@ -1,2 +1,2 @@
-require "paper_trail/frameworks/rails/controller"
-require "paper_trail/frameworks/rails/engine"
+require "object_diff_trail/frameworks/rails/controller"
+require "object_diff_trail/frameworks/rails/engine"

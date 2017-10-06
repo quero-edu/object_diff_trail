@@ -1,11 +1,11 @@
 require "spec_helper"
 require "support/custom_json_serializer"
 
-RSpec.describe(PaperTrail, versioning: true) do
+RSpec.describe(ObjectDiffTrail, versioning: true) do
   context "YAML serializer" do
     it "saves the expected YAML in the object column" do
       customer = Customer.create(name: "Some text.")
-      original_attributes = customer.paper_trail.attributes_before_change
+      original_attributes = customer.object_diff_trail.attributes_before_change
       customer.update(name: "Some more text.")
       expect(customer.versions.length).to(eq(2))
       expect(customer.versions[0].reify).to(be_nil)
@@ -17,18 +17,18 @@ RSpec.describe(PaperTrail, versioning: true) do
 
   context "JSON Serializer" do
     before do
-      PaperTrail.configure do |config|
-        config.serializer = PaperTrail::Serializers::JSON
+      ObjectDiffTrail.configure do |config|
+        config.serializer = ObjectDiffTrail::Serializers::JSON
       end
     end
 
     after do
-      PaperTrail.config.serializer = PaperTrail::Serializers::YAML
+      ObjectDiffTrail.config.serializer = ObjectDiffTrail::Serializers::YAML
     end
 
     it "reify with JSON serializer" do
       customer = Customer.create(name: "Some text.")
-      original_attributes = customer.paper_trail.attributes_before_change
+      original_attributes = customer.object_diff_trail.attributes_before_change
       customer.update(name: "Some more text.")
       expect(customer.versions.length).to(eq(2))
       expect(customer.versions[0].reify).to(be_nil)
@@ -51,16 +51,16 @@ RSpec.describe(PaperTrail, versioning: true) do
 
   context "Custom Serializer" do
     before do
-      PaperTrail.configure { |config| config.serializer = CustomJsonSerializer }
+      ObjectDiffTrail.configure { |config| config.serializer = CustomJsonSerializer }
     end
 
     after do
-      PaperTrail.config.serializer = PaperTrail::Serializers::YAML
+      ObjectDiffTrail.config.serializer = ObjectDiffTrail::Serializers::YAML
     end
 
     it "reify with custom serializer" do
       customer = Customer.create
-      original_attributes = customer.paper_trail.attributes_before_change.reject { |_k, v| v.nil? }
+      original_attributes = customer.object_diff_trail.attributes_before_change.reject { |_k, v| v.nil? }
       customer.update(name: "Some more text.")
       expect(customer.versions.length).to(eq(2))
       expect(customer.versions[0].reify).to(be_nil)

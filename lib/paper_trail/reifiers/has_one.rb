@@ -1,4 +1,4 @@
-module PaperTrail
+module ObjectDiffTrail
   module Reifiers
     # Reify a single `has_one` association of `model`.
     # @api private
@@ -22,7 +22,7 @@ module PaperTrail
           if options[:mark_for_destruction]
             model.send(assoc.name).mark_for_destruction if model.send(assoc.name, true)
           else
-            model.paper_trail.appear_as_new_record do
+            model.object_diff_trail.appear_as_new_record do
               model.send "#{assoc.name}=", nil
             end
           end
@@ -32,8 +32,8 @@ module PaperTrail
         # record from the point in time identified by `transaction_id` or `version_at`.
         # @api private
         def load_version_for_has_one(assoc, model, transaction_id, version_at)
-          version_table_name = model.class.paper_trail.version_class.table_name
-          model.class.paper_trail.version_class.joins(:version_associations).
+          version_table_name = model.class.object_diff_trail.version_class.table_name
+          model.class.object_diff_trail.version_class.joins(:version_associations).
             where("version_associations.foreign_key_name = ?", assoc.foreign_key).
             where("version_associations.foreign_key_id = ?", model.id).
             where("#{version_table_name}.item_type = ?", assoc.klass.name).
@@ -52,7 +52,7 @@ module PaperTrail
               has_and_belongs_to_many: false
             )
           )
-          model.paper_trail.appear_as_new_record do
+          model.object_diff_trail.appear_as_new_record do
             without_persisting(child) do
               model.send "#{assoc.name}=", child
             end

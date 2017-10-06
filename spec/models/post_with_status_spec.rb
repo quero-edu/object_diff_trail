@@ -7,7 +7,7 @@ RSpec.describe PostWithStatus, type: :model do
     it "saves the enum value in versions" do
       post.published!
       post.archived!
-      expect(post.paper_trail.previous_version.published?).to be true
+      expect(post.object_diff_trail.previous_version.published?).to be true
     end
 
     it "can read enums in version records written by PT 4" do
@@ -36,10 +36,10 @@ RSpec.describe PostWithStatus, type: :model do
         expect(post.versions.count).to eq(1)
         expect(post.status).to eq("draft")
         Timecop.travel 1.second.since # because MySQL lacks fractional seconds precision
-        post.paper_trail.touch_with_version
+        post.object_diff_trail.touch_with_version
         expect(post.versions.count).to eq(2)
         expect(post.versions.last[:object]).to include("status: 0")
-        expect(post.paper_trail.previous_version.status).to eq("draft")
+        expect(post.object_diff_trail.previous_version.status).to eq("draft")
       end
     end
   end

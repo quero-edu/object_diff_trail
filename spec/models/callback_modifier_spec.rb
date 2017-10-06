@@ -1,10 +1,10 @@
 require "spec_helper"
 
 RSpec.describe CallbackModifier, type: :model, versioning: true do
-  describe "paper_trail_on_destroy" do
-    it "adds :destroy to paper_trail_options[:on]" do
+  describe "object_diff_trail_on_destroy" do
+    it "adds :destroy to object_diff_trail_options[:on]" do
       modifier = NoArgDestroyModifier.create!(some_content: FFaker::Lorem.sentence)
-      expect(modifier.paper_trail_options[:on]).to eq([:destroy])
+      expect(modifier.object_diff_trail_options[:on]).to eq([:destroy])
     end
 
     context "when :before" do
@@ -37,10 +37,10 @@ RSpec.describe CallbackModifier, type: :model, versioning: true do
     end
   end
 
-  describe "paper_trail_on_update" do
-    it "adds :update to paper_trail_options[:on]" do
+  describe "object_diff_trail_on_update" do
+    it "adds :update to object_diff_trail_options[:on]" do
       modifier = UpdateModifier.create!(some_content: FFaker::Lorem.sentence)
-      expect(modifier.paper_trail_options[:on]).to eq [:update]
+      expect(modifier.object_diff_trail_options[:on]).to eq [:update]
     end
 
     it "creates a version" do
@@ -50,10 +50,10 @@ RSpec.describe CallbackModifier, type: :model, versioning: true do
     end
   end
 
-  describe "paper_trail_on_create" do
-    it "adds :create to paper_trail_options[:on]" do
+  describe "object_diff_trail_on_create" do
+    it "adds :create to object_diff_trail_options[:on]" do
       modifier = CreateModifier.create!(some_content: FFaker::Lorem.sentence)
-      expect(modifier.paper_trail_options[:on]).to eq [:create]
+      expect(modifier.object_diff_trail_options[:on]).to eq [:create]
     end
 
     it "creates a version" do
@@ -63,9 +63,9 @@ RSpec.describe CallbackModifier, type: :model, versioning: true do
   end
 
   context "when no callback-method used" do
-    it "sets paper_trail_options[:on] to [:create, :update, :destroy]" do
+    it "sets object_diff_trail_options[:on] to [:create, :update, :destroy]" do
       modifier = DefaultModifier.create!(some_content: FFaker::Lorem.sentence)
-      expect(modifier.paper_trail_options[:on]).to eq %i[create update destroy]
+      expect(modifier.object_diff_trail_options[:on]).to eq %i[create update destroy]
     end
 
     it "tracks destroy" do

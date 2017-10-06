@@ -1,12 +1,12 @@
 # before hook for Cucumber
 Before do
-  PaperTrail.enabled = false
-  PaperTrail.enabled_for_controller = true
-  PaperTrail.whodunnit = nil
-  PaperTrail.controller_info = {} if defined? Rails
+  ObjectDiffTrail.enabled = false
+  ObjectDiffTrail.enabled_for_controller = true
+  ObjectDiffTrail.whodunnit = nil
+  ObjectDiffTrail.controller_info = {} if defined? Rails
 end
 
-module PaperTrail
+module ObjectDiffTrail
   module Cucumber
     # Helper method for enabling PT in Cucumber features.
     module Extensions
@@ -16,16 +16,16 @@ module PaperTrail
       # enable versioning for specific blocks
 
       def with_versioning
-        was_enabled = ::PaperTrail.enabled?
-        ::PaperTrail.enabled = true
+        was_enabled = ::ObjectDiffTrail.enabled?
+        ::ObjectDiffTrail.enabled = true
         begin
           yield
         ensure
-          ::PaperTrail.enabled = was_enabled
+          ::ObjectDiffTrail.enabled = was_enabled
         end
       end
     end
   end
 end
 
-World PaperTrail::Cucumber::Extensions
+World ObjectDiffTrail::Cucumber::Extensions

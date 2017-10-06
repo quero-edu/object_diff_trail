@@ -1,3 +1,3 @@
 class Car < Vehicle
-  has_paper_trail
+  has_object_diff_trail
 end

@@ -1,4 +1,4 @@
-module PaperTrail
+module ObjectDiffTrail
   module AttributeSerializers
     # Included into model if AR version is < 4.2. Backport Rails 4.2 and later's
     # `type_for_attribute` so we can build on a common interface.
@@ -21,7 +21,7 @@ module PaperTrail
       # attribute API. See `type_for_attribute` below.
       class SerializedAttribute
         def initialize(coder)
-          @coder = coder.respond_to?(:dump) ? coder : PaperTrail.serializer
+          @coder = coder.respond_to?(:dump) ? coder : ObjectDiffTrail.serializer
         end
 
         def type_cast_for_database(value)

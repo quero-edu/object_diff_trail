@@ -1,11 +1,11 @@
 require "spec_helper"
 
-RSpec.describe PaperTrail do
+RSpec.describe ObjectDiffTrail do
   describe ".gem_version" do
     it "returns a Gem::Version" do
       v = described_class.gem_version
       expect(v).to be_a(::Gem::Version)
-      expect(v.to_s).to eq(::PaperTrail::VERSION::STRING)
+      expect(v.to_s).to eq(::ObjectDiffTrail::VERSION::STRING)
     end
   end
 
@@ -34,7 +34,7 @@ RSpec.describe PaperTrail do
     end
 
     context "error within `with_versioning` block" do
-      it "reverts the value of `PaperTrail.enabled?` to its previous state" do
+      it "reverts the value of `ObjectDiffTrail.enabled?` to its previous state" do
         expect(described_class).not_to be_enabled
         expect { with_versioning { raise } }.to raise_error(RuntimeError)
         expect(described_class).not_to be_enabled

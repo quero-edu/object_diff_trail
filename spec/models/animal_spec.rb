@@ -19,17 +19,17 @@ RSpec.describe Animal, type: :model, versioning: true do
     cat.update_attributes(name: "Garfield (I hate Mondays)")
     cat.update_attributes(name: "Garfield The Cat")
     cat.destroy
-    expect(PaperTrail::Version.count).to(eq(12))
+    expect(ObjectDiffTrail::Version.count).to(eq(12))
     expect(animal.versions.count).to(eq(4))
     expect(animal.versions.first.reify).to(be_nil)
     animal.versions[(1..-1)].each do |v|
       expect(v.reify.class.name).to(eq("Animal"))
     end
-    dog_versions = PaperTrail::Version.where(item_id: dog.id).order(:created_at)
+    dog_versions = ObjectDiffTrail::Version.where(item_id: dog.id).order(:created_at)
     expect(dog_versions.count).to(eq(4))
     expect(dog_versions.first.reify).to(be_nil)
     expect(dog_versions.map { |v| v.reify.class.name }).to eq(%w[NilClass Dog Dog Dog])
-    cat_versions = PaperTrail::Version.where(item_id: cat.id).order(:created_at)
+    cat_versions = ObjectDiffTrail::Version.where(item_id: cat.id).order(:created_at)
     expect(cat_versions.count).to(eq(4))
     expect(cat_versions.first.reify).to(be_nil)
     expect(cat_versions.map { |v| v.reify.class.name }).to eq(%w[NilClass Cat Cat Cat])
@@ -43,7 +43,7 @@ RSpec.describe Animal, type: :model, versioning: true do
   end
 
   context "with callback-methods" do
-    context "when only has_paper_trail set in super class" do
+    context "when only has_object_diff_trail set in super class" do
       let(:callback_cat) { Cat.create(name: "Markus") }
 
       it "trails all events" do

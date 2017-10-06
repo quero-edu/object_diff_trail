@@ -1,6 +1,6 @@
 require "spec_helper"
 
-module PaperTrail
+module ObjectDiffTrail
   ::RSpec.describe Config do
     describe ".instance" do
       it "returns the singleton instance" do
@@ -17,7 +17,7 @@ module PaperTrail
     describe "track_associations?" do
       context "@track_associations is nil" do
         after do
-          PaperTrail.config.track_associations = true
+          ObjectDiffTrail.config.track_associations = true
         end
 
         it "returns false and prints a deprecation warning" do
@@ -31,10 +31,10 @@ module PaperTrail
     end
 
     describe ".version_limit", versioning: true do
-      after { PaperTrail.config.version_limit = nil }
+      after { ObjectDiffTrail.config.version_limit = nil }
 
       it "limits the number of versions to 3 (2 plus the created at event)" do
-        PaperTrail.config.version_limit = 2
+        ObjectDiffTrail.config.version_limit = 2
         widget = Widget.create!(name: "Henry")
         6.times { widget.update_attribute(:name, FFaker::Lorem.word) }
         expect(widget.versions.first.event).to(eq("create"))

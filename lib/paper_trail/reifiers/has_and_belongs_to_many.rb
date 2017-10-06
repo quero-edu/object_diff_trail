@@ -1,4 +1,4 @@
-module PaperTrail
+module ObjectDiffTrail
   module Reifiers
     # Reify a single HABTM association of `model`.
     # @api private
@@ -6,7 +6,7 @@ module PaperTrail
       class << self
         # @api private
         def reify(pt_enabled, assoc, model, options, transaction_id)
-          version_ids = ::PaperTrail::VersionAssociation.
+          version_ids = ::ObjectDiffTrail::VersionAssociation.
             where("foreign_key_name = ?", assoc.name).
             where("version_id = ?", transaction_id).
             pluck(:foreign_key_id)
@@ -36,7 +36,7 @@ module PaperTrail
         # from the point in time identified by `transaction_id` or `version_at`.
         # @api private
         def load_version(assoc, id, transaction_id, version_at)
-          assoc.klass.paper_trail.version_class.
+          assoc.klass.object_diff_trail.version_class.
             where("item_type = ?", assoc.klass.name).
             where("item_id = ?", id).
             where("created_at >= ? OR transaction_id = ?", version_at, transaction_id).

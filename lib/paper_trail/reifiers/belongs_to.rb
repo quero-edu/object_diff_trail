@@ -1,4 +1,4 @@
-module PaperTrail
+module ObjectDiffTrail
   module Reifiers
     # Reify a single `belongs_to` association of `model`.
     # @api private
@@ -36,7 +36,7 @@ module PaperTrail
         # from the point in time identified by `transaction_id` or `version_at`.
         # @api private
         def load_version(assoc, id, transaction_id, version_at)
-          assoc.klass.paper_trail.version_class.
+          assoc.klass.object_diff_trail.version_class.
             where("item_type = ?", assoc.klass.name).
             where("item_id = ?", id).
             where("created_at >= ? OR transaction_id = ?", version_at, transaction_id).

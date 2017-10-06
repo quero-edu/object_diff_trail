@@ -2,14 +2,14 @@ class ApplicationController < ActionController::Base
   protect_from_forgery
 
   # Some applications and libraries modify `current_user`. Their changes need
-  # to be reflected in `whodunnit`, so the `set_paper_trail_whodunnit` below
+  # to be reflected in `whodunnit`, so the `set_object_diff_trail_whodunnit` below
   # must happen after this.
   before_action :modify_current_user
 
   # PT used to add this callback automatically. Now people are required to add
   # it themsevles, like this, allowing them to control the order of callbacks.
   # The `modify_current_user` callback above shows why this control is useful.
-  before_action :set_paper_trail_whodunnit
+  before_action :set_object_diff_trail_whodunnit
 
   def rescue_action(e)
     raise e
@@ -18,7 +18,7 @@ class ApplicationController < ActionController::Base
   # Returns id of hypothetical current user
   attr_reader :current_user
 
-  def info_for_paper_trail
+  def info_for_object_diff_trail
     { ip: request.remote_ip, user_agent: request.user_agent }
   end
 

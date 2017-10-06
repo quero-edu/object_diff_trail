@@ -1,6 +1,6 @@
 require "spec_helper"
 
-RSpec.describe PaperTrail::VersionConcern do
+RSpec.describe ObjectDiffTrail::VersionConcern do
   before(:all) { require "support/alt_db_init" }
 
   it "allows included class to have different connections" do

@@ -1,11 +1,11 @@
 require "active_support/core_ext"
 
-module PaperTrail
+module ObjectDiffTrail
   # Configures an ActiveRecord model, mostly at application boot time, but also
   # sometimes mid-request, with methods like enable/disable.
   class ModelConfig
     E_CANNOT_RECORD_AFTER_DESTROY = <<-STR.strip_heredoc.freeze
-      paper_trail.on_destroy(:after) is incompatible with ActiveRecord's
+      object_diff_trail.on_destroy(:after) is incompatible with ActiveRecord's
       belongs_to_required_by_default and has no effect. Please use :before
       or disable belongs_to_required_by_default.
     STR
@@ -14,28 +14,28 @@ module PaperTrail
       @model_class = model_class
     end
 
-    # Switches PaperTrail off for this class.
+    # Switches ObjectDiffTrail off for this class.
     def disable
-      ::PaperTrail.enabled_for_model(@model_class, false)
+      ::ObjectDiffTrail.enabled_for_model(@model_class, false)
     end
 
-    # Switches PaperTrail on for this class.
+    # Switches ObjectDiffTrail on for this class.
     def enable
-      ::PaperTrail.enabled_for_model(@model_class, true)
+      ::ObjectDiffTrail.enabled_for_model(@model_class, true)
     end
 
     def enabled?
-      return false unless @model_class.include?(::PaperTrail::Model::InstanceMethods)
-      ::PaperTrail.enabled_for_model?(@model_class)
+      return false unless @model_class.include?(::ObjectDiffTrail::Model::InstanceMethods)
+      ::ObjectDiffTrail.enabled_for_model?(@model_class)
     end
 
     # Adds a callback that records a version after a "create" event.
     def on_create
       @model_class.after_create { |r|
-        r.paper_trail.record_create if r.paper_trail.save_version?
+        r.object_diff_trail.record_create if r.object_diff_trail.save_version?
       }
-      return if @model_class.paper_trail_options[:on].include?(:create)
-      @model_class.paper_trail_options[:on] << :create
+      return if @model_class.object_diff_trail_options[:on].include?(:create)
+      @model_class.object_diff_trail_options[:on] << :create
     end
 
     # Adds a callback that records a version before or after a "destroy" event.
@@ -50,38 +50,38 @@ module PaperTrail
 
       @model_class.send(
         "#{recording_order}_destroy",
-        ->(r) { r.paper_trail.record_destroy if r.paper_trail.save_version? }
+        ->(r) { r.object_diff_trail.record_destroy if r.object_diff_trail.save_version? }
       )
 
-      return if @model_class.paper_trail_options[:on].include?(:destroy)
-      @model_class.paper_trail_options[:on] << :destroy
+      return if @model_class.object_diff_trail_options[:on].include?(:destroy)
+      @model_class.object_diff_trail_options[:on] << :destroy
     end
 
     # Adds a callback that records a version after an "update" event.
     def on_update
       @model_class.before_save(on: :update) { |r|
-        r.paper_trail.reset_timestamp_attrs_for_update_if_needed
+        r.object_diff_trail.reset_timestamp_attrs_for_update_if_needed
       }
       @model_class.after_update { |r|
-        r.paper_trail.record_update(nil) if r.paper_trail.save_version?
+        r.object_diff_trail.record_update(nil) if r.object_diff_trail.save_version?
       }
       @model_class.after_update { |r|
-        r.paper_trail.clear_version_instance
+        r.object_diff_trail.clear_version_instance
       }
-      return if @model_class.paper_trail_options[:on].include?(:update)
-      @model_class.paper_trail_options[:on] << :update
+      return if @model_class.object_diff_trail_options[:on].include?(:update)
+      @model_class.object_diff_trail_options[:on] << :update
     end
 
-    # Set up `@model_class` for PaperTrail. Installs callbacks, associations,
+    # Set up `@model_class` for ObjectDiffTrail. Installs callbacks, associations,
     # "class attributes", instance methods, and more.
     # @api private
     def setup(options = {})
       options[:on] ||= %i[create update destroy]
       options[:on] = Array(options[:on]) # Support single symbol
-      @model_class.send :include, ::PaperTrail::Model::InstanceMethods
+      @model_class.send :include, ::ObjectDiffTrail::Model::InstanceMethods
       if ::ActiveRecord::VERSION::STRING < "4.2"
         ::ActiveSupport::Deprecation.warn(
-          "Your version of ActiveRecord (< 4.2) has reached EOL. PaperTrail " \
+          "Your version of ActiveRecord (< 4.2) has reached EOL. ObjectDiffTrail " \
           "will soon drop support. Please upgrade ActiveRecord ASAP."
         )
         @model_class.send :extend, AttributeSerializers::LegacyActiveRecordShim
@@ -110,7 +110,7 @@ module PaperTrail
 
     def habtm_assocs_not_skipped
       @model_class.reflect_on_all_associations(:has_and_belongs_to_many).
-        reject { |a| @model_class.paper_trail_options[:skip].include?(a.name.to_s) }
+        reject { |a| @model_class.object_diff_trail_options[:skip].include?(a.name.to_s) }
     end
 
     def setup_associations(options)
@@ -121,12 +121,12 @@ module PaperTrail
       @model_class.send :attr_accessor, @model_class.version_association_name
 
       @model_class.class_attribute :version_class_name
-      @model_class.version_class_name = options[:class_name] || "PaperTrail::Version"
+      @model_class.version_class_name = options[:class_name] || "ObjectDiffTrail::Version"
 
       @model_class.class_attribute :versions_association_name
       @model_class.versions_association_name = options[:versions] || :versions
 
-      @model_class.send :attr_accessor, :paper_trail_event
+      @model_class.send :attr_accessor, :object_diff_trail_event
 
       @model_class.has_many(
         @model_class.versions_association_name,
@@ -139,9 +139,9 @@ module PaperTrail
     # Adds callbacks to record changes to habtm associations such that on save
     # the previous version of the association (if changed) can be reconstructed.
     def setup_callbacks_for_habtm(join_tables)
-      @model_class.send :attr_accessor, :paper_trail_habtm
-      @model_class.class_attribute :paper_trail_save_join_tables
-      @model_class.paper_trail_save_join_tables = Array.wrap(join_tables)
+      @model_class.send :attr_accessor, :object_diff_trail_habtm
+      @model_class.class_attribute :object_diff_trail_save_join_tables
+      @model_class.object_diff_trail_save_join_tables = Array.wrap(join_tables)
       habtm_assocs_not_skipped.each(&method(:setup_habtm_change_callbacks))
     end
 
@@ -164,33 +164,33 @@ module PaperTrail
     end
 
     def setup_options(options)
-      @model_class.class_attribute :paper_trail_options
-      @model_class.paper_trail_options = options.dup
+      @model_class.class_attribute :object_diff_trail_options
+      @model_class.object_diff_trail_options = options.dup
 
       %i[ignore skip only].each do |k|
-        @model_class.paper_trail_options[k] = [@model_class.paper_trail_options[k]].
+        @model_class.object_diff_trail_options[k] = [@model_class.object_diff_trail_options[k]].
           flatten.
           compact.
           map { |attr| attr.is_a?(Hash) ? attr.stringify_keys : attr.to_s }
       end
 
-      @model_class.paper_trail_options[:meta] ||= {}
-      if @model_class.paper_trail_options[:save_changes].nil?
-        @model_class.paper_trail_options[:save_changes] = true
+      @model_class.object_diff_trail_options[:meta] ||= {}
+      if @model_class.object_diff_trail_options[:save_changes].nil?
+        @model_class.object_diff_trail_options[:save_changes] = true
       end
     end
 
     # Reset the transaction id when the transaction is closed.
     def setup_transaction_callbacks
-      @model_class.after_commit { PaperTrail.clear_transaction_id }
-      @model_class.after_rollback { PaperTrail.clear_transaction_id }
-      @model_class.after_rollback { paper_trail.clear_rolled_back_versions }
+      @model_class.after_commit { ObjectDiffTrail.clear_transaction_id }
+      @model_class.after_rollback { ObjectDiffTrail.clear_transaction_id }
+      @model_class.after_rollback { object_diff_trail.clear_rolled_back_versions }
     end
 
     def update_habtm_state(name, callback, model, assoc)
-      model.paper_trail_habtm ||= {}
-      model.paper_trail_habtm[name] ||= { removed: [], added: [] }
-      state = model.paper_trail_habtm[name]
+      model.object_diff_trail_habtm ||= {}
+      model.object_diff_trail_habtm[name] ||= { removed: [], added: [] }
+      state = model.object_diff_trail_habtm[name]
       assoc_id = assoc.id
       case callback
       when :before_add

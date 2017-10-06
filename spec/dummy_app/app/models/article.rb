@@ -1,6 +1,6 @@
 # Demonstrates the `only` and `ignore` attributes, among other things.
 class Article < ActiveRecord::Base
-  has_paper_trail(
+  has_object_diff_trail(
     ignore: [
       :title, {
         abstract: proc { |obj|

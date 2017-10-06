@@ -17,31 +17,31 @@ RSpec.describe Document, type: :model, versioning: true do
     end
   end
 
-  describe "#paper_trail.next_version" do
+  describe "#object_diff_trail.next_version" do
     it "returns the expected document" do
       doc = Document.create
       doc.update_attributes(name: "Doc 1")
-      reified = doc.paper_trail_versions.last.reify
-      expect(doc.name).to(eq(reified.paper_trail.next_version.name))
+      reified = doc.object_diff_trail_versions.last.reify
+      expect(doc.name).to(eq(reified.object_diff_trail.next_version.name))
     end
   end
 
-  describe "#paper_trail.previous_version" do
+  describe "#object_diff_trail.previous_version" do
     it "returns the expected document" do
       doc = Document.create
       doc.update_attributes(name: "Doc 1")
       doc.update_attributes(name: "Doc 2")
-      expect(doc.paper_trail_versions.length).to(eq(3))
-      expect(doc.paper_trail.previous_version.name).to(eq("Doc 1"))
+      expect(doc.object_diff_trail_versions.length).to(eq(3))
+      expect(doc.object_diff_trail.previous_version.name).to(eq("Doc 1"))
     end
   end
 
-  describe "#paper_trail_versions" do
+  describe "#object_diff_trail_versions" do
     it "returns the expected version records" do
       doc = Document.create
       doc.update_attributes(name: "Doc 1")
-      expect(doc.paper_trail_versions.length).to(eq(2))
-      expect(doc.paper_trail_versions.map(&:event)).to(
+      expect(doc.object_diff_trail_versions.length).to(eq(2))
+      expect(doc.object_diff_trail_versions.map(&:event)).to(
         match_array(%w[create update])
       )
     end

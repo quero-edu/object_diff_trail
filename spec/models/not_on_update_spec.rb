@@ -5,8 +5,8 @@ RSpec.describe NotOnUpdate, type: :model do
     let!(:record) { described_class.create! }
 
     it "creates a version, regardless" do
-      expect { record.paper_trail.touch_with_version }.to change {
-        PaperTrail::Version.count
+      expect { record.object_diff_trail.touch_with_version }.to change {
+        ObjectDiffTrail::Version.count
       }.by(+1)
     end
 
@@ -14,7 +14,7 @@ RSpec.describe NotOnUpdate, type: :model do
       before = record.updated_at
       # Travel 1 second because MySQL lacks sub-second resolution
       Timecop.travel(1) do
-        record.paper_trail.touch_with_version
+        record.object_diff_trail.touch_with_version
       end
       expect(record.updated_at).to be > before
     end

@@ -17,7 +17,7 @@ module OverrideSongAttributesTheRails4Way
 end
 
 class Song < ActiveRecord::Base
-  has_paper_trail
+  has_object_diff_trail
 
   # Uses an integer of seconds to hold the length of the song
   def length=(minutes)

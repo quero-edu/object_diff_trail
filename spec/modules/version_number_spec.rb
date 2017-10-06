@@ -1,6 +1,6 @@
 require "spec_helper"
 
-module PaperTrail
+module ObjectDiffTrail
   ::RSpec.describe VERSION do
     describe "STRING" do
       it "joins the numbers into a period separated string" do

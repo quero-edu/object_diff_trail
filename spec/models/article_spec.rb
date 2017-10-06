@@ -4,7 +4,7 @@ RSpec.describe Article, type: :model, versioning: true do
   describe ".create" do
     it "also creates a version record" do
       expect { described_class.create }.to(
-        change { PaperTrail::Version.count }.by(+1)
+        change { ObjectDiffTrail::Version.count }.by(+1)
       )
     end
   end
@@ -13,7 +13,7 @@ RSpec.describe Article, type: :model, versioning: true do
     it "not change the number of versions" do
       article = described_class.create
       article.update_attributes(title: "My first title")
-      expect(PaperTrail::Version.count).to(eq(1))
+      expect(ObjectDiffTrail::Version.count).to(eq(1))
     end
   end
 
@@ -21,7 +21,7 @@ RSpec.describe Article, type: :model, versioning: true do
     it "not change the number of versions" do
       article = described_class.create
       article.update_attributes(abstract: "ignore abstract")
-      expect(PaperTrail::Version.count).to(eq(1))
+      expect(ObjectDiffTrail::Version.count).to(eq(1))
     end
   end
 
@@ -29,7 +29,7 @@ RSpec.describe Article, type: :model, versioning: true do
     it "change the number of versions" do
       article = described_class.create
       article.update_attributes(abstract: "do not ignore abstract!")
-      expect(PaperTrail::Version.count).to(eq(2))
+      expect(ObjectDiffTrail::Version.count).to(eq(2))
     end
   end
 
@@ -41,7 +41,7 @@ RSpec.describe Article, type: :model, versioning: true do
         content: "Some text here.",
         abstract: "ignore abstract"
       )
-      expect(PaperTrail::Version.count).to(eq(2))
+      expect(ObjectDiffTrail::Version.count).to(eq(2))
       expect(article.versions.size).to(eq(2))
     end
 
@@ -65,7 +65,7 @@ RSpec.describe Article, type: :model, versioning: true do
         content: "Some text here.",
         abstract: "do not ignore abstract"
       )
-      expect(PaperTrail::Version.count).to(eq(2))
+      expect(ObjectDiffTrail::Version.count).to(eq(2))
       expect(article.versions.size).to(eq(2))
     end
 
@@ -88,7 +88,7 @@ RSpec.describe Article, type: :model, versioning: true do
     it "change the number of versions" do
       article = described_class.create
       article.update_attributes(content: "Some text here.")
-      expect(PaperTrail::Version.count).to(eq(2))
+      expect(ObjectDiffTrail::Version.count).to(eq(2))
       expect(article.versions.size).to(eq(2))
     end
   end
@@ -97,7 +97,7 @@ RSpec.describe Article, type: :model, versioning: true do
     it "not change the number of versions" do
       article = described_class.create
       article.update_attributes(abstract: "Other abstract")
-      expect(PaperTrail::Version.count).to(eq(1))
+      expect(ObjectDiffTrail::Version.count).to(eq(1))
     end
   end
 
@@ -105,7 +105,7 @@ RSpec.describe Article, type: :model, versioning: true do
     it "not change the number of versions" do
       article = described_class.create
       article.update_attributes(file_upload: "Your data goes here")
-      expect(PaperTrail::Version.count).to(eq(1))
+      expect(ObjectDiffTrail::Version.count).to(eq(1))
     end
   end
 
@@ -116,7 +116,7 @@ RSpec.describe Article, type: :model, versioning: true do
         file_upload: "Your data goes here",
         content: "Some text here."
       )
-      expect(PaperTrail::Version.count).to(eq(2))
+      expect(ObjectDiffTrail::Version.count).to(eq(2))
     end
 
     it "show the new version in the model's `versions` association" do
@@ -152,7 +152,7 @@ RSpec.describe Article, type: :model, versioning: true do
         )
         old_article = article.versions.last
         expect(
-          PaperTrail.serializer.load(old_article.object)["file_upload"]
+          ObjectDiffTrail.serializer.load(old_article.object)["file_upload"]
         ).to(be_nil)
       end
 
@@ -168,7 +168,7 @@ RSpec.describe Article, type: :model, versioning: true do
         )
         old_article = article.versions.last
         expect(
-          PaperTrail.serializer.load(old_article.object)["content"]
+          ObjectDiffTrail.serializer.load(old_article.object)["content"]
         ).to(eq("Some text here."))
       end
     end
@@ -178,7 +178,7 @@ RSpec.describe Article, type: :model, versioning: true do
     it "creates a version record" do
       article = described_class.create
       article.destroy
-      expect(PaperTrail::Version.count).to(eq(2))
+      expect(ObjectDiffTrail::Version.count).to(eq(2))
       expect(article.versions.size).to(eq(2))
       expect(article.versions.map(&:event)).to(match_array(%w[create destroy]))
     end

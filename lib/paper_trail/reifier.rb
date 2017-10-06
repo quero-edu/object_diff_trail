@@ -1,11 +1,11 @@
-require "paper_trail/attribute_serializers/object_attribute"
-require "paper_trail/reifiers/belongs_to"
-require "paper_trail/reifiers/has_and_belongs_to_many"
-require "paper_trail/reifiers/has_many"
-require "paper_trail/reifiers/has_many_through"
-require "paper_trail/reifiers/has_one"
+require "object_diff_trail/attribute_serializers/object_attribute"
+require "object_diff_trail/reifiers/belongs_to"
+require "object_diff_trail/reifiers/has_and_belongs_to_many"
+require "object_diff_trail/reifiers/has_many"
+require "object_diff_trail/reifiers/has_many_through"
+require "object_diff_trail/reifiers/has_one"
 
-module PaperTrail
+module ObjectDiffTrail
   # Given a version record and some options, builds a new model object.
   # @api private
   module Reifier
@@ -54,7 +54,7 @@ module PaperTrail
       # @api private
       def each_enabled_association(associations)
         associations.each do |assoc|
-          next unless assoc.klass.paper_trail.enabled?
+          next unless assoc.klass.object_diff_trail.enabled?
           yield assoc
         end
       end
@@ -173,7 +173,7 @@ module PaperTrail
       # Reify all direct (not `through`) `has_many` associations of `model`.
       # @api private
       def reify_has_many_associations(transaction_id, associations, model, options = {})
-        version_table_name = model.class.paper_trail.version_class.table_name
+        version_table_name = model.class.object_diff_trail.version_class.table_name
         each_enabled_association(associations) do |assoc|
           Reifiers::HasMany.reify(assoc, model, options, transaction_id, version_table_name)
         end
@@ -192,8 +192,8 @@ module PaperTrail
       # @api private
       def reify_habtm_associations(transaction_id, model, options = {})
         model.class.reflect_on_all_associations(:has_and_belongs_to_many).each do |assoc|
-          pt_enabled = assoc.klass.paper_trail.enabled?
-          next unless model.class.paper_trail_save_join_tables.include?(assoc.name) || pt_enabled
+          pt_enabled = assoc.klass.object_diff_trail.enabled?
+          next unless model.class.object_diff_trail_save_join_tables.include?(assoc.name) || pt_enabled
           Reifiers::HasAndBelongsToMany.reify(pt_enabled, assoc, model, options, transaction_id)
         end
       end

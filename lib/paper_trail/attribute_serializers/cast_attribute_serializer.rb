@@ -1,4 +1,4 @@
-module PaperTrail
+module ObjectDiffTrail
   # :nodoc:
   module AttributeSerializers
     # The `CastAttributeSerializer` (de)serializes model attribute values. For

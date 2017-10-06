@@ -1,15 +1,15 @@
 test: &test
   adapter: postgresql
-  database: paper_trail_test
+  database: object_diff_trail_test
   username: postgres
-  password: 
+  password:
   host:     localhost
   port:     5432
 
 foo:
   <<: *test
-  database: paper_trail_foo
+  database: object_diff_trail_foo
 
 bar:
   <<: *test
-  database: paper_trail_bar
+  database: object_diff_trail_bar

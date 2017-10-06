@@ -1,5 +1,5 @@
 class Citation < ActiveRecord::Base
   belongs_to :quotation
 
-  has_paper_trail
+  has_object_diff_trail
 end

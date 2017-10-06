@@ -17,14 +17,14 @@ RSpec.describe LegacyWidget, type: :model, versioning: true do
       %w[bar baz].each { |name| widget.update_attributes(name: name) }
       version = widget.versions.last
       reified = version.reify
-      expect(reified.paper_trail.previous_version).to(eq(reified.versions[-2].reify))
+      expect(reified.object_diff_trail.previous_version).to(eq(reified.versions[-2].reify))
     end
   end
 
   describe "#update_attributes" do
     it "does not create a PT version record because the updated column is ignored" do
       described_class.create.update_attributes(version: 1)
-      expect(PaperTrail::Version.count).to(eq(1))
+      expect(ObjectDiffTrail::Version.count).to(eq(1))
     end
   end
 

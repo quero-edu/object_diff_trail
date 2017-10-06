@@ -1,9 +1,9 @@
-module PaperTrail
+module ObjectDiffTrail
   # Represents the history of a single record.
   # @api private
   class RecordHistory
     # @param versions - ActiveRecord::Relation - All versions of the record.
-    # @param version_class - Class - Usually PaperTrail::Version,
+    # @param version_class - Class - Usually ObjectDiffTrail::Version,
     #   but it could also be a custom version class.
     # @api private
     def initialize(versions, version_class)

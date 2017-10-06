@@ -1,8 +1,8 @@
 # Demonstrates a "custom versions association name". Instead of the assication
-# being named `versions`, it will be named `paper_trail_versions`.
+# being named `versions`, it will be named `object_diff_trail_versions`.
 class Document < ActiveRecord::Base
-  has_paper_trail(
-    versions: :paper_trail_versions,
+  has_object_diff_trail(
+    versions: :object_diff_trail_versions,
     on: %i[create update]
   )
 end

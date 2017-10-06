@@ -1,4 +1,4 @@
-module PaperTrail
+module ObjectDiffTrail
   # Utilities for deleting version records.
   module Cleaner
     # Destroys all but the most recent version(s) for items on a given date
@@ -30,7 +30,7 @@ module PaperTrail
     private
 
     # Returns a hash of versions grouped by the `item_id` attribute formatted
-    # like this: {:item_id => PaperTrail::Version}. If `item_id` or `date` is
+    # like this: {:item_id => ObjectDiffTrail::Version}. If `item_id` or `date` is
     # set, versions will be narrowed to those pointing at items with those ids
     # that were created on specified date. Versions are returned in
     # chronological order.
@@ -38,13 +38,13 @@ module PaperTrail
       unless date == :all || date.respond_to?(:to_date)
         raise ArgumentError, "Expected date to be a Timestamp or :all"
       end
-      versions = item_id ? PaperTrail::Version.where(item_id: item_id) : PaperTrail::Version
-      versions = versions.order(PaperTrail::Version.timestamp_sort_order)
+      versions = item_id ? ObjectDiffTrail::Version.where(item_id: item_id) : ObjectDiffTrail::Version
+      versions = versions.order(ObjectDiffTrail::Version.timestamp_sort_order)
       versions = versions.between(date.to_date, date.to_date + 1.day) unless date == :all
 
       # If `versions` has not been converted to an ActiveRecord::Relation yet,
       # do so now.
-      versions = PaperTrail::Version.all if versions == PaperTrail::Version
+      versions = ObjectDiffTrail::Version.all if versions == ObjectDiffTrail::Version
       versions.group_by(&:item_id)
     end
 

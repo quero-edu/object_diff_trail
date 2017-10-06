@@ -2,7 +2,7 @@ require "spec_helper"
 
 RSpec.describe WidgetsController, type: :controller, versioning: true do
   before { request.env["REMOTE_ADDR"] = "127.0.0.1" }
-  after { RequestStore.store[:paper_trail] = nil }
+  after { RequestStore.store[:object_diff_trail] = nil }
 
   describe "#create" do
     context "PT enabled" do
@@ -18,11 +18,11 @@ RSpec.describe WidgetsController, type: :controller, versioning: true do
       it "controller metadata methods should get evaluated" do
         request.env["HTTP_USER_AGENT"] = "User-Agent"
         post :create, params_wrapper(widget: { name: "Flugel" })
-        expect(PaperTrail.enabled_for_controller?).to(eq(true))
-        expect(PaperTrail.whodunnit).to(eq(153))
-        expect(PaperTrail.controller_info.present?).to(eq(true))
-        expect(PaperTrail.controller_info.keys.include?(:ip)).to(eq(true))
-        expect(PaperTrail.controller_info.keys.include?(:user_agent)).to(eq(true))
+        expect(ObjectDiffTrail.enabled_for_controller?).to(eq(true))
+        expect(ObjectDiffTrail.whodunnit).to(eq(153))
+        expect(ObjectDiffTrail.controller_info.present?).to(eq(true))
+        expect(ObjectDiffTrail.controller_info.keys.include?(:ip)).to(eq(true))
+        expect(ObjectDiffTrail.controller_info.keys.include?(:user_agent)).to(eq(true))
       end
     end
 
@@ -31,9 +31,9 @@ RSpec.describe WidgetsController, type: :controller, versioning: true do
         request.env["HTTP_USER_AGENT"] = "Disable User-Agent"
         post :create, params_wrapper(widget: { name: "Flugel" })
         expect(assigns(:widget).versions.length).to(eq(0))
-        expect(PaperTrail).not_to be_enabled_for_controller
-        expect(PaperTrail.whodunnit).to be_nil
-        expect(PaperTrail.controller_info).to eq({})
+        expect(ObjectDiffTrail).not_to be_enabled_for_controller
+        expect(ObjectDiffTrail.whodunnit).to be_nil
+        expect(ObjectDiffTrail.controller_info).to eq({})
       end
     end
   end
@@ -45,7 +45,7 @@ RSpec.describe WidgetsController, type: :controller, versioning: true do
       w = assigns(:widget)
       expect(w.versions.length).to(eq(0))
       delete(:destroy, params_wrapper(id: w.id))
-      expect(PaperTrail::Version.with_item_keys("Widget", w.id).size).to(eq(0))
+      expect(ObjectDiffTrail::Version.with_item_keys("Widget", w.id).size).to(eq(0))
     end
 
     it "stores information like IP address in version" do

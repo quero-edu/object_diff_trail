@@ -1,4 +1,4 @@
-module PaperTrail
+module ObjectDiffTrail
   module Reifiers
     # Reify a single HMT association of `model`.
     # @api private
@@ -41,7 +41,7 @@ module PaperTrail
         # @api private
         def collection_through_has_many(through_collection, assoc, options, transaction_id)
           through_collection.each do |through_model|
-            ::PaperTrail::Reifier.reify_has_manys(transaction_id, through_model, options)
+            ::ObjectDiffTrail::Reifier.reify_has_manys(transaction_id, through_model, options)
           end
 
           # At this point, the "through" part of the association chain has
@@ -71,7 +71,7 @@ module PaperTrail
         # `version_at`.
         # @api private
         def load_versions_for_hmt_association(assoc, ids, tx_id, version_at)
-          version_id_subquery = assoc.klass.paper_trail.version_class.
+          version_id_subquery = assoc.klass.object_diff_trail.version_class.
             select("MIN(id)").
             where("item_type = ?", assoc.klass.name).
             where("item_id IN (?)", ids).

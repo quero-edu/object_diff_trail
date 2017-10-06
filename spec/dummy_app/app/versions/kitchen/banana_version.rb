@@ -1,5 +1,5 @@
 module Kitchen
-  class BananaVersion < PaperTrail::Version
+  class BananaVersion < ObjectDiffTrail::Version
     self.table_name = "banana_versions"
   end
 end

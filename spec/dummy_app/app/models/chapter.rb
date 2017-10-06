@@ -5,5 +5,5 @@ class Chapter < ActiveRecord::Base
   has_many :quotations, dependent: :destroy
   has_many :citations, through: :quotations
 
-  has_paper_trail
+  has_object_diff_trail
 end

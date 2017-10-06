@@ -1,1 +1,1 @@
-PaperTrail.config.track_associations = true
+ObjectDiffTrail.config.track_associations = true

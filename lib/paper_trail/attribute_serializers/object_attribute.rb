@@ -1,6 +1,6 @@
-require "paper_trail/attribute_serializers/cast_attribute_serializer"
+require "object_diff_trail/attribute_serializers/cast_attribute_serializer"
 
-module PaperTrail
+module ObjectDiffTrail
   module AttributeSerializers
     # Serialize or deserialize the `version.object` column.
     class ObjectAttribute
@@ -32,7 +32,7 @@ module PaperTrail
       end
 
       def object_col_is_json?
-        @model_class.paper_trail.version_class.object_col_is_json?
+        @model_class.object_diff_trail.version_class.object_col_is_json?
       end
     end
   end

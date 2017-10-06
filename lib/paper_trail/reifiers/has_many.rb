@@ -1,4 +1,4 @@
-module PaperTrail
+module ObjectDiffTrail
   module Reifiers
     # Reify a single, direct (not `through`) `has_many` association of `model`.
     # @api private
@@ -82,7 +82,7 @@ module PaperTrail
         #
         def versions_by_id(klass, version_id_subquery)
           klass.
-            paper_trail.version_class.
+            object_diff_trail.version_class.
             where("id IN (#{version_id_subquery})").
             inject({}) { |a, e| a.merge!(e.item_id => e) }
         end
@@ -93,7 +93,7 @@ module PaperTrail
         # from the point in time identified by `tx_id` or `version_at`.
         # @api private
         def load_versions_for_hm_association(assoc, model, version_table, tx_id, version_at)
-          version_id_subquery = ::PaperTrail::VersionAssociation.
+          version_id_subquery = ::ObjectDiffTrail::VersionAssociation.
             joins(model.class.version_association_name).
             select("MIN(version_id)").
             where("foreign_key_name = ?", assoc.foreign_key).

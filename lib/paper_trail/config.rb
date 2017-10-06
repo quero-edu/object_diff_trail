@@ -1,9 +1,9 @@
 require "singleton"
-require "paper_trail/serializers/yaml"
+require "object_diff_trail/serializers/yaml"
 
-module PaperTrail
+module ObjectDiffTrail
   # Global configuration affecting all threads. Some thread-specific
-  # configuration can be found in `paper_trail.rb`, others in `controller.rb`.
+  # configuration can be found in `object_diff_trail.rb`, others in `controller.rb`.
   class Config
     include Singleton
     attr_accessor :serializer, :version_limit
@@ -15,20 +15,20 @@ module PaperTrail
       @enabled = true
 
       # Variables which affect all threads, whose access is *not* synchronized.
-      @serializer = PaperTrail::Serializers::YAML
+      @serializer = ObjectDiffTrail::Serializers::YAML
     end
 
-    # Previously, we checked `PaperTrail::VersionAssociation.table_exists?`
+    # Previously, we checked `ObjectDiffTrail::VersionAssociation.table_exists?`
     # here, but that proved to be problematic in situations when the database
     # connection had not been established, or when the database does not exist
     # yet (as with `rake db:create`).
     def track_associations?
       if @track_associations.nil?
         ActiveSupport::Deprecation.warn <<-EOS.strip_heredoc.gsub(/\s+/, " ")
-          PaperTrail.config.track_associations has not been set. As of PaperTrail 5, it
+          ObjectDiffTrail.config.track_associations has not been set. As of ObjectDiffTrail 5, it
           defaults to false. Tracking associations is an experimental feature so
-          we recommend setting PaperTrail.config.track_associations = false in
-          your config/initializers/paper_trail.rb
+          we recommend setting ObjectDiffTrail.config.track_associations = false in
+          your config/initializers/object_diff_trail.rb
         EOS
         false
       else
@@ -36,7 +36,7 @@ module PaperTrail
       end
     end
 
-    # Indicates whether PaperTrail is on or off. Default: true.
+    # Indicates whether ObjectDiffTrail is on or off. Default: true.
     def enabled
       @mutex.synchronize { !!@enabled }
     end

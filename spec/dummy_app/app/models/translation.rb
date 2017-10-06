@@ -4,7 +4,7 @@ class Translation < ActiveRecord::Base
   # TODO: rename column
   self.inheritance_column = nil
 
-  has_paper_trail(
+  has_object_diff_trail(
     if: proc { |t| t.language_code == "US" },
     unless: proc { |t| t.type == "DRAFT" }
   )

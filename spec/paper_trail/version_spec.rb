@@ -1,6 +1,6 @@
 require "spec_helper"
 
-module PaperTrail
+module ObjectDiffTrail
   ::RSpec.describe(Version, versioning: true) do
     describe ".creates" do
       it "returns only create events" do

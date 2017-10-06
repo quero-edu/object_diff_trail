@@ -1,8 +1,8 @@
-module PaperTrail
+module ObjectDiffTrail
   module Queries
     module Versions
       # For public API documentation, see `where_object` in
-      # `paper_trail/version_concern.rb`.
+      # `object_diff_trail/version_concern.rb`.
       # @api private
       class WhereObjectChanges
         # - version_model_class - The class that VersionConcern was mixed into.
@@ -57,7 +57,7 @@ module PaperTrail
         def text
           arel_field = @version_model_class.arel_table[:object_changes]
           where_conditions = @attributes.map { |field, value|
-            ::PaperTrail.serializer.where_object_changes_condition(arel_field, field, value)
+            ::ObjectDiffTrail.serializer.where_object_changes_condition(arel_field, field, value)
           }
           where_conditions = where_conditions.reduce { |a, e| a.and(e) }
           @version_model_class.where(where_conditions)

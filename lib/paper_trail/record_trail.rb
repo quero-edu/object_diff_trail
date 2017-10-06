@@ -1,4 +1,4 @@
-module PaperTrail
+module ObjectDiffTrail
   # Represents the "paper trail" for a single record.
   class RecordTrail
     RAILS_GTE_5_1 = ::ActiveRecord.gem_version >= ::Gem::Version.new("5.1.0.beta1")
@@ -19,7 +19,7 @@ module PaperTrail
     # > something) from running. By also stubbing out persisted? we can
     # > actually prevent those. A more stable option might be to use suppress
     # > instead, similar to the other branch in reify_has_one.
-    # > -Sean Griffin (https://github.com/airblade/paper_trail/pull/899)
+    # > -Sean Griffin (https://github.com/airblade/object_diff_trail/pull/899)
     #
     def appear_as_new_record
       @record.instance_eval {
@@ -46,7 +46,7 @@ module PaperTrail
     end
 
     def changed_and_not_ignored
-      ignore = @record.paper_trail_options[:ignore].dup
+      ignore = @record.object_diff_trail_options[:ignore].dup
       # Remove Hash arguments and then evaluate whether the attributes (the
       # keys of the hash) should also get pushed into the collection.
       ignore.delete_if do |obj|
@@ -55,7 +55,7 @@ module PaperTrail
             ignore << attr if condition.respond_to?(:call) && condition.call(@record)
           }
       end
-      skip = @record.paper_trail_options[:skip]
+      skip = @record.object_diff_trail_options[:skip]
       changed_in_latest_version - ignore - skip
     end
 
@@ -97,18 +97,18 @@ module PaperTrail
     end
 
     def enabled?
-      PaperTrail.enabled? && PaperTrail.enabled_for_controller? && enabled_for_model?
+      ObjectDiffTrail.enabled? && ObjectDiffTrail.enabled_for_controller? && enabled_for_model?
     end
 
     def enabled_for_model?
-      @record.class.paper_trail.enabled?
+      @record.class.object_diff_trail.enabled?
     end
 
     # An attributed is "ignored" if it is listed in the `:ignore` option
     # and/or the `:skip` option.  Returns true if an ignored attribute has
     # changed.
     def ignored_attr_has_changed?
-      ignored = @record.paper_trail_options[:ignore] + @record.paper_trail_options[:skip]
+      ignored = @record.object_diff_trail_options[:ignore] + @record.object_diff_trail_options[:skip]
       ignored.any? && (changed_in_latest_version & ignored).any?
     end
 
@@ -128,13 +128,13 @@ module PaperTrail
     # Updates `data` from `controller_info`.
     # @api private
     def merge_metadata_from_controller_into(data)
-      data.merge(PaperTrail.controller_info || {})
+      data.merge(ObjectDiffTrail.controller_info || {})
     end
 
     # Updates `data` from the model's `meta` option.
     # @api private
     def merge_metadata_from_model_into(data)
-      @record.paper_trail_options[:meta].each do |k, v|
+      @record.object_diff_trail_options[:meta].each do |k, v|
         data[k] = model_metadatum(v, data[:event])
       end
     end
@@ -172,7 +172,7 @@ module PaperTrail
     end
 
     def notably_changed
-      only = @record.paper_trail_options[:only].dup
+      only = @record.object_diff_trail_options[:only].dup
       # Remove Hash arguments and then evaluate whether the attributes (the
       # keys of the hash) should also get pushed into the collection.
       only.delete_if do |obj|
@@ -186,8 +186,8 @@ module PaperTrail
 
     # Returns hash of attributes (with appropriate attributes serialized),
     # omitting attributes to be skipped.
-    def object_attrs_for_paper_trail
-      attrs = attributes_before_change.except(*@record.paper_trail_options[:skip])
+    def object_attrs_for_object_diff_trail
+      attrs = attributes_before_change.except(*@record.object_diff_trail_options[:skip])
       AttributeSerializers::ObjectAttribute.new(@record.class).serialize(attrs)
       attrs
     end
@@ -217,9 +217,9 @@ module PaperTrail
     # @api private
     def data_for_create
       data = {
-        event: @record.paper_trail_event || "create",
+        event: @record.object_diff_trail_event || "create",
         object: recordable_object,
-        whodunnit: PaperTrail.whodunnit
+        whodunnit: ObjectDiffTrail.whodunnit
       }
       if @record.respond_to?(:updated_at)
         data[:created_at] = @record.updated_at
@@ -233,7 +233,7 @@ module PaperTrail
 
     def record_destroy
       if enabled? && !@record.new_record?
-        version = @record.class.paper_trail.version_class.create(data_for_destroy)
+        version = @record.class.object_diff_trail.version_class.create(data_for_destroy)
         if version.errors.any?
           log_version_errors(version, :destroy)
         else
@@ -251,9 +251,9 @@ module PaperTrail
       data = {
         item_id: @record.id,
         item_type: @record.class.base_class.name,
-        event: @record.paper_trail_event || "destroy",
+        event: @record.object_diff_trail_event || "destroy",
         object: recordable_object,
-        whodunnit: PaperTrail.whodunnit
+        whodunnit: ObjectDiffTrail.whodunnit
       }
       add_transaction_id_to(data)
       merge_metadata_into(data)
@@ -263,8 +263,8 @@ module PaperTrail
     # in the `object_changes` column of the version record.
     # @api private
     def record_object_changes?
-      @record.paper_trail_options[:save_changes] &&
-        @record.class.paper_trail.version_class.column_names.include?("object_changes")
+      @record.object_diff_trail_options[:save_changes] &&
+        @record.class.object_diff_trail.version_class.column_names.include?("object_changes")
     end
 
     def record_update(force)
@@ -287,9 +287,9 @@ module PaperTrail
     # @api private
     def data_for_update
       data = {
-        event: @record.paper_trail_event || "update",
+        event: @record.object_diff_trail_event || "update",
         # object: recordable_object,
-        whodunnit: PaperTrail.whodunnit
+        whodunnit: ObjectDiffTrail.whodunnit
       }
       if @record.respond_to?(:updated_at)
         data[:created_at] = @record.updated_at
@@ -305,13 +305,13 @@ module PaperTrail
     # nascent version record. If the `object` column is a postgres `json`
     # column, then a hash can be used in the assignment, otherwise the column
     # is a `text` column, and we must perform the serialization here, using
-    # `PaperTrail.serializer`.
+    # `ObjectDiffTrail.serializer`.
     # @api private
     def recordable_object
-      if @record.class.paper_trail.version_class.object_col_is_json?
-        object_attrs_for_paper_trail
+      if @record.class.object_diff_trail.version_class.object_col_is_json?
+        object_attrs_for_object_diff_trail
       else
-        PaperTrail.serializer.dump(object_attrs_for_paper_trail)
+        ObjectDiffTrail.serializer.dump(object_attrs_for_object_diff_trail)
       end
     end
 
@@ -319,13 +319,13 @@ module PaperTrail
     # attribute of a nascent version record. If the `object_changes` column is
     # a postgres `json` column, then a hash can be used in the assignment,
     # otherwise the column is a `text` column, and we must perform the
-    # serialization here, using `PaperTrail.serializer`.
+    # serialization here, using `ObjectDiffTrail.serializer`.
     # @api private
     def recordable_object_changes
-      if @record.class.paper_trail.version_class.object_changes_col_is_json?
+      if @record.class.object_diff_trail.version_class.object_changes_col_is_json?
         changes
       else
-        PaperTrail.serializer.dump(changes)
+        ObjectDiffTrail.serializer.dump(changes)
       end
     end
 
@@ -346,7 +346,7 @@ module PaperTrail
 
     # Saves associations if the join table for `VersionAssociation` exists.
     def save_associations(version)
-      return unless PaperTrail.config.track_associations?
+      return unless ObjectDiffTrail.config.track_associations?
       save_bt_associations(version)
       save_habtm_associations(version)
     end
@@ -361,14 +361,14 @@ module PaperTrail
 
     # When a record is created, updated, or destroyed, we determine what the
     # HABTM associations looked like before any changes were made, by using
-    # the `paper_trail_habtm` data structure. Then, we create
+    # the `object_diff_trail_habtm` data structure. Then, we create
     # `VersionAssociation` records for each of the associated records.
     # @api private
     def save_habtm_associations(version)
       @record.class.reflect_on_all_associations(:has_and_belongs_to_many).each do |a|
         next unless save_habtm_association?(a)
         habtm_assoc_ids(a).each do |id|
-          PaperTrail::VersionAssociation.create(
+          ObjectDiffTrail::VersionAssociation.create(
             version_id: version.transaction_id,
             foreign_key_name: a.name,
             foreign_key_id: id
@@ -380,8 +380,8 @@ module PaperTrail
     # AR callback.
     # @api private
     def save_version?
-      if_condition = @record.paper_trail_options[:if]
-      unless_condition = @record.paper_trail_options[:unless]
+      if_condition = @record.object_diff_trail_options[:if]
+      unless_condition = @record.object_diff_trail_options[:unless]
       (if_condition.blank? || if_condition.call(@record)) && !unless_condition.try(:call, @record)
     end
 
@@ -428,8 +428,8 @@ module PaperTrail
 
     # Executes the given method or block without creating a new version.
     def without_versioning(method = nil)
-      paper_trail_was_enabled = enabled_for_model?
-      @record.class.paper_trail.disable
+      object_diff_trail_was_enabled = enabled_for_model?
+      @record.class.object_diff_trail.disable
       if method
         if respond_to?(method)
           public_send(method)
@@ -440,25 +440,25 @@ module PaperTrail
         yield @record
       end
     ensure
-      @record.class.paper_trail.enable if paper_trail_was_enabled
+      @record.class.object_diff_trail.enable if object_diff_trail_was_enabled
     end
 
     # Temporarily overwrites the value of whodunnit and then executes the
     # provided block.
     def whodunnit(value)
       raise ArgumentError, "expected to receive a block" unless block_given?
-      current_whodunnit = PaperTrail.whodunnit
-      PaperTrail.whodunnit = value
+      current_whodunnit = ObjectDiffTrail.whodunnit
+      ObjectDiffTrail.whodunnit = value
       yield @record
     ensure
-      PaperTrail.whodunnit = current_whodunnit
+      ObjectDiffTrail.whodunnit = current_whodunnit
     end
 
     private
 
     def add_transaction_id_to(data)
-      return unless @record.class.paper_trail.version_class.column_names.include?("transaction_id")
-      data[:transaction_id] = PaperTrail.transaction_id
+      return unless @record.class.object_diff_trail.version_class.column_names.include?("transaction_id")
+      data[:transaction_id] = ObjectDiffTrail.transaction_id
     end
 
     # @api private
@@ -501,8 +501,8 @@ module PaperTrail
     # @api private
     def habtm_assoc_ids(habtm_assoc)
       current = @record.send(habtm_assoc.name).to_a.map(&:id) # TODO: `pluck` would use less memory
-      removed = @record.paper_trail_habtm.try(:[], habtm_assoc.name).try(:[], :removed) || []
-      added = @record.paper_trail_habtm.try(:[], habtm_assoc.name).try(:[], :added) || []
+      removed = @record.object_diff_trail_habtm.try(:[], habtm_assoc.name).try(:[], :removed) || []
+      added = @record.object_diff_trail_habtm.try(:[], habtm_assoc.name).try(:[], :added) || []
       current + removed - added
     end
 
@@ -523,36 +523,36 @@ module PaperTrail
 
       if assoc.options[:polymorphic]
         associated_record = @record.send(assoc.name) if @record.send(assoc.foreign_type)
-        if associated_record && associated_record.class.paper_trail.enabled?
+        if associated_record && associated_record.class.object_diff_trail.enabled?
           assoc_version_args[:foreign_key_id] = associated_record.id
         end
-      elsif assoc.klass.paper_trail.enabled?
+      elsif assoc.klass.object_diff_trail.enabled?
         assoc_version_args[:foreign_key_id] = @record.send(assoc.foreign_key)
       end
 
       if assoc_version_args.key?(:foreign_key_id)
-        PaperTrail::VersionAssociation.create(assoc_version_args)
+        ObjectDiffTrail::VersionAssociation.create(assoc_version_args)
       end
     end
 
     # Returns true if the given HABTM association should be saved.
     # @api private
     def save_habtm_association?(assoc)
-      @record.class.paper_trail_save_join_tables.include?(assoc.name) ||
-        assoc.klass.paper_trail.enabled?
+      @record.class.object_diff_trail_save_join_tables.include?(assoc.name) ||
+        assoc.klass.object_diff_trail.enabled?
     end
 
     # Returns true if `save` will cause `record_update`
     # to be called via the `after_update` callback.
     def will_record_after_update?
-      on = @record.paper_trail_options[:on]
+      on = @record.object_diff_trail_options[:on]
       on.nil? || on.include?(:update)
     end
 
     def update_transaction_id(version)
-      return unless @record.class.paper_trail.version_class.column_names.include?("transaction_id")
-      if PaperTrail.transaction? && PaperTrail.transaction_id.nil?
-        PaperTrail.transaction_id = version.id
+      return unless @record.class.object_diff_trail.version_class.column_names.include?("transaction_id")
+      if ObjectDiffTrail.transaction? && ObjectDiffTrail.transaction_id.nil?
+        ObjectDiffTrail.transaction_id = version.id
         version.transaction_id = version.id
         version.save
       end

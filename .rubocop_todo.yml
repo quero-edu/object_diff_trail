@@ -20,7 +20,7 @@ RSpec/BeforeAfterAll:
 
 RSpec/ExpectInHook:
   Exclude:
-    - spec/paper_trail/associations_spec.rb
+    - spec/object_diff_trail/associations_spec.rb
     - spec/models/version_spec.rb
 
 RSpec/FilePath:
@@ -28,8 +28,8 @@ RSpec/FilePath:
 
 RSpec/InstanceVariable:
   Exclude:
-    - spec/paper_trail/associations_spec.rb
-    - spec/paper_trail/model_spec.rb
+    - spec/object_diff_trail/associations_spec.rb
+    - spec/object_diff_trail/model_spec.rb
 
 RSpec/MessageSpies:
   Exclude:
@@ -40,8 +40,8 @@ RSpec/NamedSubject:
 
 RSpec/NestedGroups:
   Exclude:
-    - spec/paper_trail/associations_spec.rb
-    - spec/paper_trail/model_spec.rb
+    - spec/object_diff_trail/associations_spec.rb
+    - spec/object_diff_trail/model_spec.rb
 
 Security/YAMLLoad:
   Enabled: false

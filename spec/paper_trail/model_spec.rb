@@ -1,13 +1,13 @@
 require "spec_helper"
 
-RSpec.describe(::PaperTrail, versioning: true) do
+RSpec.describe(::ObjectDiffTrail, versioning: true) do
   context "a new record" do
     it "not have any previous versions" do
       expect(Widget.new.versions).to(eq([]))
     end
 
     it "be live" do
-      expect(Widget.new.paper_trail.live?).to(eq(true))
+      expect(Widget.new.object_diff_trail.live?).to(eq(true))
     end
   end
 
@@ -30,7 +30,7 @@ RSpec.describe(::PaperTrail, versioning: true) do
     end
 
     it "be live" do
-      expect(@widget.paper_trail.live?).to(eq(true))
+      expect(@widget.object_diff_trail.live?).to(eq(true))
     end
 
     it "use the widget `updated_at` as the version's `created_at`" do
@@ -84,13 +84,13 @@ RSpec.describe(::PaperTrail, versioning: true) do
 
       it "have versions that are not live" do
         @widget.versions.map(&:reify).compact.each do |v|
-          expect(v.paper_trail).not_to be_live
+          expect(v.object_diff_trail).not_to be_live
         end
       end
 
       it "have stored changes" do
         last_obj_changes = @widget.versions.last.object_changes
-        actual = PaperTrail.serializer.load(last_obj_changes).reject do |k, _v|
+        actual = ObjectDiffTrail.serializer.load(last_obj_changes).reject do |k, _v|
           (k.to_sym == :updated_at)
         end
         expect(actual).to(eq("name" => %w[Henry Harry]))
@@ -161,15 +161,15 @@ RSpec.describe(::PaperTrail, versioning: true) do
         before do
           @fluxor = @widget.fluxors.create(name: "flux")
           @widget.destroy
-          @reified_widget = PaperTrail::Version.last.reify
+          @reified_widget = ObjectDiffTrail::Version.last.reify
         end
 
         it "record the correct event" do
-          expect(PaperTrail::Version.last.event).to(match(/destroy/i))
+          expect(ObjectDiffTrail::Version.last.event).to(match(/destroy/i))
         end
 
         it "have three previous versions" do
-          expect(PaperTrail::Version.with_item_keys("Widget", @widget.id).length).to(eq(3))
+          expect(ObjectDiffTrail::Version.with_item_keys("Widget", @widget.id).length).to(eq(3))
         end
 
         describe "#attributes" do
@@ -213,7 +213,7 @@ RSpec.describe(::PaperTrail, versioning: true) do
     end
   end
 
-  context "a record's papertrail" do
+  context "a record's ObjectDiffTrail" do
     before do
       @date_time = DateTime.now.utc
       @time = Time.now
@@ -303,13 +303,13 @@ RSpec.describe(::PaperTrail, versioning: true) do
   context "A record" do
     before { @widget = Widget.create(name: "Zaphod") }
 
-    context "with PaperTrail globally disabled" do
+    context "with ObjectDiffTrail globally disabled" do
       before do
-        PaperTrail.enabled = false
+        ObjectDiffTrail.enabled = false
         @count = @widget.versions.length
       end
 
-      after { PaperTrail.enabled = true }
+      after { ObjectDiffTrail.enabled = true }
 
       context "when updated" do
         before { @widget.update_attributes(name: "Beeblebrox") }
@@ -322,11 +322,11 @@ RSpec.describe(::PaperTrail, versioning: true) do
 
     context "with its paper trail turned off" do
       before do
-        Widget.paper_trail.disable
+        Widget.object_diff_trail.disable
         @count = @widget.versions.length
       end
 
-      after { Widget.paper_trail.enable }
+      after { Widget.object_diff_trail.enable }
 
       context "when updated" do
         before { @widget.update_attributes(name: "Beeblebrox") }
@@ -338,13 +338,13 @@ RSpec.describe(::PaperTrail, versioning: true) do
 
       context "when destroyed \"without versioning\"" do
         it "leave paper trail off after call" do
-          @widget.paper_trail.without_versioning(:destroy)
-          expect(Widget.paper_trail.enabled?).to(eq(false))
+          @widget.object_diff_trail.without_versioning(:destroy)
+          expect(Widget.object_diff_trail.enabled?).to(eq(false))
         end
       end
 
       context "and then its paper trail turned on" do
-        before { Widget.paper_trail.enable }
+        before { Widget.object_diff_trail.enable }
 
         context "when updated" do
           before { @widget.update_attributes(name: "Ford") }
@@ -356,10 +356,10 @@ RSpec.describe(::PaperTrail, versioning: true) do
 
         context "when updated \"without versioning\"" do
           before do
-            @widget.paper_trail.without_versioning do
+            @widget.object_diff_trail.without_versioning do
               @widget.update_attributes(name: "Ford")
             end
-            @widget.paper_trail.without_versioning do |w|
+            @widget.object_diff_trail.without_versioning do |w|
               w.update_attributes(name: "Nixon")
             end
           end
@@ -369,68 +369,68 @@ RSpec.describe(::PaperTrail, versioning: true) do
           end
 
           it "enable paper trail after call" do
-            expect(Widget.paper_trail.enabled?).to(eq(true))
+            expect(Widget.object_diff_trail.enabled?).to(eq(true))
           end
         end
 
         context "when receiving a method name as an argument" do
-          before { @widget.paper_trail.without_versioning(:touch_with_version) }
+          before { @widget.object_diff_trail.without_versioning(:touch_with_version) }
 
           it "not create new version" do
             expect(@widget.versions.length).to(eq(@count))
           end
 
           it "enable paper trail after call" do
-            expect(Widget.paper_trail.enabled?).to(eq(true))
+            expect(Widget.object_diff_trail.enabled?).to(eq(true))
           end
         end
       end
     end
   end
 
-  context "A papertrail with somebody making changes" do
+  context "A ObjectDiffTrail with somebody making changes" do
     before { @widget = Widget.new(name: "Fidget") }
 
     context "when a record is created" do
       before do
-        PaperTrail.whodunnit = "Alice"
+        ObjectDiffTrail.whodunnit = "Alice"
         @widget.save
         @version = @widget.versions.last
       end
 
       it "track who made the change" do
         expect(@version.whodunnit).to(eq("Alice"))
-        expect(@version.paper_trail_originator).to(be_nil)
+        expect(@version.object_diff_trail_originator).to(be_nil)
         expect(@version.terminator).to(eq("Alice"))
-        expect(@widget.paper_trail.originator).to(eq("Alice"))
+        expect(@widget.object_diff_trail.originator).to(eq("Alice"))
       end
 
       context "when a record is updated" do
         before do
-          PaperTrail.whodunnit = "Bob"
+          ObjectDiffTrail.whodunnit = "Bob"
           @widget.update_attributes(name: "Rivet")
           @version = @widget.versions.last
         end
 
         it "track who made the change" do
           expect(@version.whodunnit).to(eq("Bob"))
-          expect(@version.paper_trail_originator).to(eq("Alice"))
+          expect(@version.object_diff_trail_originator).to(eq("Alice"))
           expect(@version.terminator).to(eq("Bob"))
-          expect(@widget.paper_trail.originator).to(eq("Bob"))
+          expect(@widget.object_diff_trail.originator).to(eq("Bob"))
         end
 
         context "when a record is destroyed" do
           before do
-            PaperTrail.whodunnit = "Charlie"
+            ObjectDiffTrail.whodunnit = "Charlie"
             @widget.destroy
-            @version = PaperTrail::Version.last
+            @version = ObjectDiffTrail::Version.last
           end
 
           it "track who made the change" do
             expect(@version.whodunnit).to(eq("Charlie"))
-            expect(@version.paper_trail_originator).to(eq("Bob"))
+            expect(@version.object_diff_trail_originator).to(eq("Bob"))
             expect(@version.terminator).to(eq("Charlie"))
-            expect(@widget.paper_trail.originator).to(eq("Charlie"))
+            expect(@widget.object_diff_trail.originator).to(eq("Charlie"))
           end
         end
       end
@@ -460,14 +460,14 @@ RSpec.describe(::PaperTrail, versioning: true) do
       if ActiveRecord::VERSION::MAJOR < 4
         assert_kind_of(FooWidget, @foo.versions.last.reify)
       end
-      expect(PaperTrail::Version.last.previous).to(eq(@foo.versions.first))
-      expect(PaperTrail::Version.last.next).to(be_nil)
+      expect(ObjectDiffTrail::Version.last.previous).to(eq(@foo.versions.first))
+      expect(ObjectDiffTrail::Version.last.next).to(be_nil)
     end
 
     it "returns the correct originator" do
-      PaperTrail.whodunnit = "Ben"
+      ObjectDiffTrail.whodunnit = "Ben"
       @foo.update_attribute(:name, "Geoffrey")
-      expect(@foo.paper_trail.originator).to(eq(PaperTrail.whodunnit))
+      expect(@foo.object_diff_trail.originator).to(eq(ObjectDiffTrail.whodunnit))
     end
 
     context "when destroyed" do
@@ -475,8 +475,8 @@ RSpec.describe(::PaperTrail, versioning: true) do
 
       it "reify with the correct type" do
         assert_kind_of(FooWidget, @foo.versions.last.reify)
-        expect(PaperTrail::Version.last.previous).to(eq(@foo.versions[1]))
-        expect(PaperTrail::Version.last.next).to(be_nil)
+        expect(ObjectDiffTrail::Version.last.previous).to(eq(@foo.versions[1]))
+        expect(ObjectDiffTrail::Version.last.next).to(be_nil)
       end
     end
   end
@@ -500,43 +500,43 @@ RSpec.describe(::PaperTrail, versioning: true) do
       end
 
       it "return nil for version_at before it was created" do
-        expect(@widget.paper_trail.version_at((@created - 1))).to(be_nil)
+        expect(@widget.object_diff_trail.version_at((@created - 1))).to(be_nil)
       end
 
       it "return how it looked when created for version_at its creation" do
-        expect(@widget.paper_trail.version_at(@created).name).to(eq("Widget"))
+        expect(@widget.object_diff_trail.version_at(@created).name).to(eq("Widget"))
       end
 
       it "return how it looked before its first update" do
-        expect(@widget.paper_trail.version_at((@first_update - 1)).name).to(eq("Widget"))
+        expect(@widget.object_diff_trail.version_at((@first_update - 1)).name).to(eq("Widget"))
       end
 
       it "return how it looked after its first update" do
-        expect(@widget.paper_trail.version_at(@first_update).name).to(eq("Fidget"))
+        expect(@widget.object_diff_trail.version_at(@first_update).name).to(eq("Fidget"))
       end
 
       it "return how it looked before its second update" do
-        expect(@widget.paper_trail.version_at((@second_update - 1)).name).to(eq("Fidget"))
+        expect(@widget.object_diff_trail.version_at((@second_update - 1)).name).to(eq("Fidget"))
       end
 
       it "return how it looked after its second update" do
-        expect(@widget.paper_trail.version_at(@second_update).name).to(eq("Digit"))
+        expect(@widget.object_diff_trail.version_at(@second_update).name).to(eq("Digit"))
       end
 
       it "return the current object for version_at after latest update" do
-        expect(@widget.paper_trail.version_at(1.day.from_now).name).to(eq("Digit"))
+        expect(@widget.object_diff_trail.version_at(1.day.from_now).name).to(eq("Digit"))
       end
 
       context "passing in a string representation of a timestamp" do
         it "still return a widget when appropriate" do
           expect(
-            @widget.paper_trail.version_at((@created + 1.second).to_s).name
+            @widget.object_diff_trail.version_at((@created + 1.second).to_s).name
           ).to(eq("Widget"))
           expect(
-            @widget.paper_trail.version_at((@first_update + 1.second).to_s).name
+            @widget.object_diff_trail.version_at((@first_update + 1.second).to_s).name
           ).to(eq("Fidget"))
           expect(
-            @widget.paper_trail.version_at((@second_update + 1.second).to_s).name
+            @widget.object_diff_trail.version_at((@second_update + 1.second).to_s).name
           ).to(eq("Digit"))
         end
       end
@@ -555,16 +555,16 @@ RSpec.describe(::PaperTrail, versioning: true) do
 
       it "return versions in the time period" do
         expect(
-          @widget.paper_trail.versions_between(20.days.ago, 10.days.ago).map(&:name)
+          @widget.object_diff_trail.versions_between(20.days.ago, 10.days.ago).map(&:name)
         ).to(eq(["Fidget"]))
         expect(
-          @widget.paper_trail.versions_between(45.days.ago, 10.days.ago).map(&:name)
+          @widget.object_diff_trail.versions_between(45.days.ago, 10.days.ago).map(&:name)
         ).to(eq(%w[Widget Fidget]))
         expect(
-          @widget.paper_trail.versions_between(16.days.ago, 1.minute.ago).map(&:name)
+          @widget.object_diff_trail.versions_between(16.days.ago, 1.minute.ago).map(&:name)
         ).to(eq(%w[Fidget Digit Digit]))
         expect(
-          @widget.paper_trail.versions_between(60.days.ago, 45.days.ago).map(&:name)
+          @widget.object_diff_trail.versions_between(60.days.ago, 45.days.ago).map(&:name)
         ).to(eq([]))
       end
     end
@@ -690,7 +690,7 @@ RSpec.describe(::PaperTrail, versioning: true) do
     end
 
     it "return its previous self" do
-      expect(@widget.paper_trail.previous_version).to(eq(@widget.versions[-2].reify))
+      expect(@widget.object_diff_trail.previous_version).to(eq(@widget.versions[-2].reify))
     end
   end
 
@@ -698,11 +698,11 @@ RSpec.describe(::PaperTrail, versioning: true) do
     before { @widget = Widget.new }
 
     it "not have a previous version" do
-      expect(@widget.paper_trail.previous_version).to(be_nil)
+      expect(@widget.object_diff_trail.previous_version).to(be_nil)
     end
 
     it "not have a next version" do
-      expect(@widget.paper_trail.next_version).to(be_nil)
+      expect(@widget.object_diff_trail.next_version).to(be_nil)
     end
 
     context "with versions" do
@@ -714,11 +714,11 @@ RSpec.describe(::PaperTrail, versioning: true) do
       end
 
       it "have a previous version" do
-        expect(@widget.paper_trail.previous_version.name).to(eq(@widget.versions.last.reify.name))
+        expect(@widget.object_diff_trail.previous_version.name).to(eq(@widget.versions.last.reify.name))
       end
 
       it "not have a next version" do
-        expect(@widget.paper_trail.next_version).to(be_nil)
+        expect(@widget.object_diff_trail.next_version).to(be_nil)
       end
     end
   end
@@ -734,13 +734,13 @@ RSpec.describe(::PaperTrail, versioning: true) do
     end
 
     it "have a previous version" do
-      expect(@second_widget.paper_trail.previous_version).to(be_nil)
-      expect(@last_widget.paper_trail.previous_version.name).to(eq(@widget.versions[-2].reify.name))
+      expect(@second_widget.object_diff_trail.previous_version).to(be_nil)
+      expect(@last_widget.object_diff_trail.previous_version.name).to(eq(@widget.versions[-2].reify.name))
     end
 
     it "have a next version" do
-      expect(@second_widget.paper_trail.next_version.name).to(eq(@widget.versions[2].reify.name))
-      expect(@widget.name).to(eq(@last_widget.paper_trail.next_version.name))
+      expect(@second_widget.object_diff_trail.next_version.name).to(eq(@widget.versions[2].reify.name))
+      expect(@widget.name).to(eq(@last_widget.object_diff_trail.next_version.name))
     end
   end
 
@@ -752,37 +752,37 @@ RSpec.describe(::PaperTrail, versioning: true) do
     end
 
     it "store version on source <<" do
-      count = PaperTrail::Version.count
+      count = ObjectDiffTrail::Version.count
       (@book.authors << @dostoyevsky)
-      expect((PaperTrail::Version.count - count)).to(eq(1))
-      expect(@book.authorships.first.versions.first).to(eq(PaperTrail::Version.last))
+      expect((ObjectDiffTrail::Version.count - count)).to(eq(1))
+      expect(@book.authorships.first.versions.first).to(eq(ObjectDiffTrail::Version.last))
     end
 
     it "store version on source create" do
-      count = PaperTrail::Version.count
+      count = ObjectDiffTrail::Version.count
       @book.authors.create(name: "Tolstoy")
-      expect((PaperTrail::Version.count - count)).to(eq(2))
+      expect((ObjectDiffTrail::Version.count - count)).to(eq(2))
       expect(
-        [PaperTrail::Version.order(:id).to_a[-2].item, PaperTrail::Version.last.item]
+        [ObjectDiffTrail::Version.order(:id).to_a[-2].item, ObjectDiffTrail::Version.last.item]
       ).to match_array([Person.last, Authorship.last])
     end
 
     it "store version on join destroy" do
       (@book.authors << @dostoyevsky)
-      count = PaperTrail::Version.count
+      count = ObjectDiffTrail::Version.count
       @book.authorships.reload.last.destroy
-      expect((PaperTrail::Version.count - count)).to(eq(1))
-      expect(PaperTrail::Version.last.reify.book).to(eq(@book))
-      expect(PaperTrail::Version.last.reify.author).to(eq(@dostoyevsky))
+      expect((ObjectDiffTrail::Version.count - count)).to(eq(1))
+      expect(ObjectDiffTrail::Version.last.reify.book).to(eq(@book))
+      expect(ObjectDiffTrail::Version.last.reify.author).to(eq(@dostoyevsky))
     end
 
     it "store version on join clear" do
       (@book.authors << @dostoyevsky)
-      count = PaperTrail::Version.count
+      count = ObjectDiffTrail::Version.count
       @book.authorships.reload.destroy_all
-      expect((PaperTrail::Version.count - count)).to(eq(1))
-      expect(PaperTrail::Version.last.reify.book).to(eq(@book))
-      expect(PaperTrail::Version.last.reify.author).to(eq(@dostoyevsky))
+      expect((ObjectDiffTrail::Version.count - count)).to(eq(1))
+      expect(ObjectDiffTrail::Version.last.reify.book).to(eq(@book))
+      expect(ObjectDiffTrail::Version.last.reify.author).to(eq(@dostoyevsky))
     end
   end
 
@@ -894,7 +894,7 @@ RSpec.describe(::PaperTrail, versioning: true) do
     end
   end
 
-  context "A new model instance which uses a custom PaperTrail::Version class" do
+  context "A new model instance which uses a custom ObjectDiffTrail::Version class" do
     before { @post = Post.new }
 
     context "which is then saved" do
@@ -905,12 +905,12 @@ RSpec.describe(::PaperTrail, versioning: true) do
       end
 
       it "not change the number of versions" do
-        expect(PaperTrail::Version.count).to(eq(0))
+        expect(ObjectDiffTrail::Version.count).to(eq(0))
       end
     end
   end
 
-  context "An existing model instance which uses a custom PaperTrail::Version class" do
+  context "An existing model instance which uses a custom ObjectDiffTrail::Version class" do
     before { @post = Post.create }
 
     it "have one post version" do
@@ -937,7 +937,7 @@ RSpec.describe(::PaperTrail, versioning: true) do
       end
 
       it "not change the number of versions" do
-        expect(PaperTrail::Version.count).to(eq(0))
+        expect(ObjectDiffTrail::Version.count).to(eq(0))
       end
 
       it "not have stored changes when object_changes column doesn't exist" do

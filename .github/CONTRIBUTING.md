@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in PaperTrail!
+Thanks for your interest in ObjectDiffTrail!
 
 Ask usage questions on Stack Overflow:
 https://stackoverflow.com/tags/paper-trail-gem
@@ -45,7 +45,7 @@ cd ../..
 DB=sqlite bundle exec appraisal ar-4.2 rake
 
 # Run a single test
-DB=sqlite bundle exec appraisal ar-4.2 rspec spec/paper_trail/serializers/json_spec.rb
+DB=sqlite bundle exec appraisal ar-4.2 rspec spec/object_diff_trail/serializers/json_spec.rb
 ```
 
 ### Test sqlite, AR 5
@@ -134,7 +134,7 @@ Don't forget to commit changes to `schema.rb`.
 
 ## Releases
 
-1. Set the version in lib/paper_trail/version_number.rb
+1. Set the version in lib/object_diff_trail/version_number.rb
   - Set PRE to nil unless it's a pre-release (beta, rc, etc.)
 1. In the changelog,
   - Replace "Unreleased" with the date in iso-8601 format
@@ -145,7 +145,7 @@ Don't forget to commit changes to `schema.rb`.
 1. Commit
 1. git tag -a -m "v5.0.0" "v5.0.0" # or whatever number
 1. git push --tags origin 5-stable # or whatever branch
-1. gem build paper_trail.gemspec
-1. gem push paper_trail-5.0.0.gem
+1. gem build object_diff_trail.gemspec
+1. gem push object_diff_trail-5.0.0.gem
 
-[1]: https://github.com/airblade/paper_trail/blob/master/doc/bug_report_template.rb
+[1]: https://github.com/airblade/object_diff_trail/blob/master/doc/bug_report_template.rb

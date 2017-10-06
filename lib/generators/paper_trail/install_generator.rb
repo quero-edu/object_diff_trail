@@ -1,8 +1,8 @@
 require "rails/generators"
 require "rails/generators/active_record"
 
-module PaperTrail
-  # Installs PaperTrail in a rails app.
+module ObjectDiffTrail
+  # Installs ObjectDiffTrail in a rails app.
   class InstallGenerator < ::Rails::Generators::Base
     include ::Rails::Generators::Migration
 
@@ -29,21 +29,21 @@ module PaperTrail
     )
 
     desc "Generates (but does not run) a migration to add a versions table." \
-         "  Also generates an initializer file for configuring PaperTrail"
+         "  Also generates an initializer file for configuring ObjectDiffTrail"
 
     def create_migration_file
-      add_paper_trail_migration("create_versions")
-      add_paper_trail_migration("add_object_changes_to_versions") if options.with_changes?
+      add_object_diff_trail_migration("create_versions")
+      add_object_diff_trail_migration("add_object_changes_to_versions") if options.with_changes?
       if options.with_associations?
-        add_paper_trail_migration("create_version_associations")
-        add_paper_trail_migration("add_transaction_id_column_to_versions")
+        add_object_diff_trail_migration("create_version_associations")
+        add_object_diff_trail_migration("add_transaction_id_column_to_versions")
       end
     end
 
     def create_initializer
       create_file(
-        "config/initializers/paper_trail.rb",
-        "PaperTrail.config.track_associations = #{!!options.with_associations?}"
+        "config/initializers/object_diff_trail.rb",
+        "ObjectDiffTrail.config.track_associations = #{!!options.with_associations?}"
       )
     end
 
@@ -53,7 +53,7 @@ module PaperTrail
 
     protected
 
-    def add_paper_trail_migration(template)
+    def add_object_diff_trail_migration(template)
       migration_dir = File.expand_path("db/migrate")
       if self.class.migration_exists?(migration_dir, template)
         ::Kernel.warn "Migration already exists: #{template}"
@@ -71,7 +71,7 @@ module PaperTrail
     private
 
     # MySQL 5.6 utf8mb4 limit is 191 chars for keys used in indexes.
-    # See https://github.com/airblade/paper_trail/issues/651
+    # See https://github.com/airblade/object_diff_trail/issues/651
     def item_type_options
       opt = { null: false }
       opt[:limit] = 191 if mysql?
@@ -91,7 +91,7 @@ module PaperTrail
 
     # Even modern versions of MySQL still use `latin1` as the default character
     # encoding. Many users are not aware of this, and run into trouble when they
-    # try to use PaperTrail in apps that otherwise tend to use UTF-8. Postgres, by
+    # try to use ObjectDiffTrail in apps that otherwise tend to use UTF-8. Postgres, by
     # comparison, uses UTF-8 except in the unusual case where the OS is configured
     # with a custom locale.
     #

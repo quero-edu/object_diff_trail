@@ -8,7 +8,7 @@ class Person < ActiveRecord::Base
     belongs_to :mentor, class_name: "Person", foreign_key: :mentor_id
   end
 
-  has_paper_trail
+  has_object_diff_trail
 
   # Convert strings to TimeZone objects when assigned
   def time_zone=(value)
